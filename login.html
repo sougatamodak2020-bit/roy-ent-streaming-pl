@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login - Roy Entertainment</title>
+    
+    <!-- FIX SOURCEMAPS - MUST BE FIRST SCRIPT -->
+    <script src="fix-sourcemaps.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="login.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body>
+    <!-- Animated background shapes -->
+    <div class="bg-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="glass-card">
+            <!-- Logo Section -->
+            <div class="logo-section">
+                <div class="logo">Roy Entertainment</div>
+                <p class="tagline">Your Gateway to Unlimited Entertainment</p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="form-wrapper active" id="login-form">
+                <h2 class="form-title">Welcome Back</h2>
+                
+                <!-- Social Login Buttons -->
+                <div class="social-login-section">
+                    <button class="social-btn google" id="google-login">
+                        <i class="fab fa-google"></i>
+                        <span>Continue with Google</span>
+                    </button>
+                    <button class="social-btn facebook" id="facebook-login">
+                        <i class="fab fa-facebook-f"></i>
+                        <span>Continue with Facebook</span>
+                    </button>
+                    <button class="social-btn github" id="github-login">
+                        <i class="fab fa-github"></i>
+                        <span>Continue with GitHub</span>
+                    </button>
+                </div>
+
+                <!-- Divider -->
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input 
+                                type="email" 
+                                id="login-email" 
+                                placeholder="Enter your email"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input 
+                                type="password" 
+                                id="login-password" 
+                                placeholder="Enter your password"
+                                required
+                            />
+                            <i class="fas fa-eye toggle-password" id="toggle-login-password"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" id="remember"/>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <div id="login-error" class="error-message" style="display: none;"></div>
+
+                    <button type="submit" class="submit-btn">Sign In</button>
+                </form>
+
+                <div class="create-account">
+                    <p>Don't have an account? <a href="#" id="show-signup">Create Account</a></p>
+                </div>
+
+                <!-- Back to Home -->
+                <div class="back-home">
+                    <a href="index.html"><i class="fas fa-home"></i> Back to Home</a>
+                </div>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div class="form-wrapper" id="signup-form">
+                <h2 class="form-title">Create Account</h2>
+                
+                <!-- Social Login Buttons -->
+                <div class="social-login-section">
+                    <button class="social-btn google" id="google-signup">
+                        <i class="fab fa-google"></i>
+                        <span>Sign up with Google</span>
+                    </button>
+                    <button class="social-btn facebook" id="facebook-signup">
+                        <i class="fab fa-facebook-f"></i>
+                        <span>Sign up with Facebook</span>
+                    </button>
+                    <button class="social-btn github" id="github-signup">
+                        <i class="fab fa-github"></i>
+                        <span>Sign up with GitHub</span>
+                    </button>
+                </div>
+
+                <!-- Divider -->
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input 
+                                type="text" 
+                                id="signup-name" 
+                                placeholder="Enter your name"
+                                required
+                                minlength="3"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input 
+                                type="email" 
+                                id="signup-email" 
+                                placeholder="Enter your email"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input 
+                                type="password" 
+                                id="signup-password" 
+                                placeholder="Create a password (min 6 characters)"
+                                required
+                                minlength="6"
+                            />
+                            <i class="fas fa-eye toggle-password" id="toggle-signup-password"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input 
+                                type="password" 
+                                id="signup-confirm-password" 
+                                placeholder="Confirm your password"
+                                required
+                            />
+                            <i class="fas fa-eye toggle-password" id="toggle-confirm-password"></i>
+                        </div>
+                    </div>
+
+                    <div id="signup-error" class="error-message" style="display: none;"></div>
+                    <div id="signup-success" class="success-message" style="display: none;"></div>
+
+                    <button type="submit" class="submit-btn">Create Account</button>
+                </form>
+
+                <div class="create-account">
+                    <p>Already have an account? <a href="#" id="show-login">Sign In</a></p>
+                </div>
+
+                <!-- Back to Home -->
+                <div class="back-home">
+                    <a href="index.html"><i class="fas fa-home"></i> Back to Home</a>
+                </div>
+            </div>
+
+            <!-- Follow Us Section -->
+            <div class="follow">
+                <h4>Follow us</h4>
+                <div class="icon">
+                    <a href="https://www.facebook.com/profile.php?id=61561918005483" target="_blank" title="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://twitter.com/RoyEntertainment" target="_blank" title="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/royentertainment" target="_blank" title="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://pinterest.com/royentertainment" target="_blank" title="Pinterest">
+                        <i class="fab fa-pinterest-p"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@RoyEntertainmentfilmz" target="_blank" title="YouTube">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- logout modal -->
+    <div id="custom-confirm-modal" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <p id="custom-confirm-message">Are you sure?</p>
+            <div class="custom-modal-buttons">
+                <button id="custom-confirm-ok" class="btn-primary">OK</button>
+                <button id="custom-confirm-cancel" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - UPDATED ORDER AND CDN -->
+    
+    <!-- Supabase SDK - Using UNPKG without source maps -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    
+    <script src="supabase-config.js"></script>
+    <script src="auth-service.js"></script>
+    <script src="profile.js"></script>
+    <script src="login.js"></script>
+
+
+    <!-- CRITICAL: Source map fix MUST be first -->
+    <script src="fix-sourcemaps.js"></script>
+    
+    <!-- Load Supabase cleanly -->
+    <script src="supabase-loader.js"></script>
+    
+    <!-- Wait for Supabase before loading config -->
+    <script>
+        // Wait for Supabase to be available
+        function waitForSupabase(callback) {
+            if (window.supabase) {
+                callback();
+            } else {
+                setTimeout(() => waitForSupabase(callback), 100);
+            }
+        }
+        
+        waitForSupabase(() => {
+            // Load configuration after Supabase is ready
+            const configScript = document.createElement('script');
+            configScript.src = 'supabase-config.js';
+            document.body.appendChild(configScript);
+            
+            // Load other scripts after config
+            configScript.onload = () => {
+                const scripts = [
+                    'auth-service.js',
+                    'theme.js',
+                    'profile.js',
+                    'script.js',
+                    'dynamic-loader.js'
+                ];
+                
+                scripts.forEach(src => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.defer = true;
+                    document.body.appendChild(script);
+                });
+            };
+        });
+    </script>
+    
+
+</body>
+</html>

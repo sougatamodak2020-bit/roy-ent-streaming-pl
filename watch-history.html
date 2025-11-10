@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch History - Roy Entertainment</title>
+    
+    <!-- FIX SOURCEMAPS - MUST BE FIRST SCRIPT -->
+    <script src="fix-sourcemaps.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="watch-history.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Use same header from index.html -->
+    <header class="main-header">
+        <a href="index.html" class="logo">
+            <img src="img/logo.jpg" alt="Roy Entertainment Logo"/>
+            <span>Roy Entertainment</span>
+        </a>
+        <nav class="main-nav">
+            <a href="index.html">Home</a>
+            <div class="dropdown">
+                <span class="dropdown-toggle">Movies <i class="fas fa-chevron-down"></i></span>
+                <div class="dropdown-menu">
+                    <a href="movies.html?category=latest">Latest</a>
+                    <a href="movies.html?category=popular">Popular</a>
+                    <a href="movies.html?category=upcoming">Upcoming</a>
+                </div>
+            </div>
+            <a href="index.html#our-productions">Our Production</a>
+            <a href="downloads.html">Downloads</a>
+        </nav>
+        <div class="nav-right">
+            <div class="profile-dropdown" id="profile-dropdown">
+                <button class="profile-btn" id="profile-btn">
+                    <img src="img/avatars/avatar1.png" alt="Profile" class="profile-avatar" id="profile-avatar"/>
+                    <span class="profile-name" id="profile-name">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <a href="login.html" class="login-btn" id="login-btn" style="display:none;">
+                <i class="fas fa-user"></i>
+                <span>Login</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="watch-history-container">
+        <h1 class="page-title">
+            <i class="fas fa-history"></i> Watch History
+        </h1>
+
+        <div class="history-controls">
+            <button class="clear-history-btn" onclick="clearWatchHistory()">
+                <i class="fas fa-trash"></i> Clear All History
+            </button>
+        </div>
+
+        <div id="history-grid" class="history-grid">
+            <!-- History items will be loaded here -->
+        </div>
+
+        <div id="no-history" class="no-history" style="display:none;">
+            <i class="fas fa-film"></i>
+            <h2>No Watch History</h2>
+            <p>Start watching movies to see your history here</p>
+            <a href="index.html" class="btn-primary">Browse Movies</a>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-logo">
+            <img src="img/logo.jpg" alt="Roy Entertainment Logo"/>
+            <span>Roy Entertainment</span>
+        </div>
+        <p>&copy; 2025 Roy Entertainment. All rights reserved.</p>
+    </footer>
+
+    <!-- logout modal -->
+    <div id="custom-confirm-modal" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <p id="custom-confirm-message">Are you sure?</p>
+            <div class="custom-modal-buttons">
+                <button id="custom-confirm-ok" class="btn-primary">OK</button>
+                <button id="custom-confirm-cancel" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - UPDATED ORDER AND CDN -->
+    
+    <!-- Supabase SDK - Using UNPKG without source maps -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    
+    <script src="supabase-config.js"></script>
+    <script src="auth-service.js"></script>
+    <script src="theme.js"></script>
+    <script src="profile.js"></script>
+    <script>
+        // Load watch history
+        async function loadWatchHistory() {
+            if (!window.authService || !authService.isLoggedIn()) {
+                window.location.href = 'login.html?redirect=watch-history.html';
+                return;
+            }
+
+            const historyGrid = document.getElementById('history-grid');
+            const noHistory = document.getElementById('no-history');
+            
+            try {
+                const history = await authService.getWatchHistory();
+                
+                if (history && history.length > 0) {
+                    historyGrid.innerHTML = history.map(item => `
+                        <div class="history-item" onclick="window.location.href='watch.html?movie=${item.movie_id}'">
+                            <div class="history-thumbnail">
+                                <img src="img/movie-banner-${Math.floor(Math.random() * 7) + 1}.png" alt="${item.movie_id}">
+                                <div class="progress-overlay">
+                                    <div class="progress-bar" style="width: ${item.progress || 0}%"></div>
+                                </div>
+                            </div>
+                            <div class="history-info">
+                                <h3>${item.movie_id.replace('-', ' ').toUpperCase()}</h3>
+                                <p>${Math.round(item.progress || 0)}% watched</p>
+                                <small>${new Date(item.timestamp).toLocaleDateString()}</small>
+                            </div>
+                        </div>
+                    `).join('');
+                    noHistory.style.display = 'none';
+                } else {
+                    historyGrid.innerHTML = '';
+                    noHistory.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                noHistory.style.display = 'flex';
+            }
+
+            // Hide preloader
+            setTimeout(() => {
+                document.getElementById('preloader').style.display = 'none';
+            }, 500);
+        }
+
+        async function clearWatchHistory() {
+            window.showConfirmation('Are you sure you want to clear all watch history?', () => {
+                // Clear from database
+                localStorage.removeItem('watchProgress');
+                window.showNotification('Watch history cleared', 'success');
+                loadWatchHistory();
+            });
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadWatchHistory, 1000);
+        });
+    </script>
+
+
+
+
+</body>
+</html>

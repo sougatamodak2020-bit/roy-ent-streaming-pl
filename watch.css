@@ -1,0 +1,429 @@
+/* ========================================
+   WATCH PAGE STYLES - Light/Dark Mode
+   Roy Entertainment
+======================================== */
+
+/* Uses CSS variables from main style.css */
+
+/* ========================================
+   1. BREADCRUMB NAVIGATION
+======================================== */
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 5%;
+    margin-bottom: 20px;
+    background: var(--bg-primary);
+}
+
+.breadcrumb-nav a {
+    color: var(--accent-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.breadcrumb-nav a:hover {
+    color: var(--accent-primary);
+}
+
+.breadcrumb-nav .separator {
+    color: var(--text-secondary);
+}
+
+.breadcrumb-nav .current-page {
+    color: var(--text-primary);
+}
+
+/* ========================================
+   2. WATCH AREA BANNER
+======================================== */
+.watch-area-banner {
+    width: 90%;
+    max-width: 1400px;
+    height: 60vh;
+    min-height: 670px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 15px;
+    margin: 0 auto 40px;
+    position: relative;
+    box-shadow: 0 20px 60px var(--shadow);
+    overflow: hidden;
+    background-color: var(--bg-card);
+}
+
+.watch-area-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--gradient-start), transparent 50%);
+    border-radius: 15px;
+}
+
+.play-icon-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(210, 4, 45, 0.9);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(210, 4, 45, 0.5);
+    z-index: 10;
+}
+
+.play-icon-overlay:hover {
+    background: var(--accent-primary);
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 15px 40px rgba(210, 4, 45, 0.7);
+}
+
+.play-icon-overlay i {
+    margin-left: 5px;
+}
+
+/* ========================================
+   3. MOVIE DETAILS PANEL
+======================================== */
+.movie-details-panel {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 50px;
+    padding: 0 5%;
+    margin-bottom: 60px;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.poster-container img {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px var(--shadow);
+    border: 3px solid var(--border-color);
+}
+
+.info-container h1 {
+    font-size: 3rem;
+    color: var(--text-accent);
+    text-shadow: 0 2px 10px var(--shadow);
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+/* ========================================
+   4. METADATA GRID
+======================================== */
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px 40px;
+    margin-bottom: 30px;
+    font-family: var(--font);
+    color: var(--text-primary);
+}
+
+.metadata-grid > div {
+    display: flex;
+    align-items: center;
+}
+
+.metadata-grid span:first-child {
+    font-weight: 700;
+    color: var(--text-accent);
+    margin-right: 10px;
+    min-width: 80px;
+}
+
+.quality-badge {
+    background: var(--accent-secondary);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 5px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+#movie-rating {
+    color: var(--accent-secondary);
+    font-weight: 700;
+}
+
+#movie-rating i {
+    margin-right: 5px;
+}
+
+/* ========================================
+   5. DESCRIPTION
+======================================== */
+.info-container p {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+    margin-bottom: 35px;
+}
+
+/* ========================================
+   6. ACTION BUTTONS
+======================================== */
+.actions-bar {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 600;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.action-btn:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px var(--shadow);
+}
+
+.action-btn.primary {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.action-btn.primary:hover {
+    background: #b8032a;
+    box-shadow: 0 10px 30px rgba(210, 4, 45, 0.4);
+}
+
+.action-btn.youtube {
+    background: #ff0000;
+    border-color: #ff0000;
+    color: #fff;
+}
+
+.action-btn.youtube:hover {
+    background: #cc0000;
+    box-shadow: 0 10px 30px rgba(255, 0, 0, 0.4);
+}
+
+/* ========================================
+   7. STREAMING SECTION
+======================================== */
+.streaming-section {
+    padding: 40px 5%;
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    margin: 0 auto 60px;
+    max-width: 1400px;
+    box-shadow: 0 10px 40px var(--shadow);
+    display: none;
+}
+
+.streaming-section.active {
+    display: block;
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.player-title {
+    font-size: 2rem;
+    margin-bottom: 25px;
+    color: var(--text-accent);
+    font-weight: 600;
+}
+
+.player-wrapper {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 10px 40px var(--shadow);
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+}
+
+.player-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* ========================================
+   8. YOU MAY ALSO LIKE SECTION
+======================================== */
+#you-may-also-like-container {
+    padding: 60px 5% 50px 5%;
+    margin-top: 40px;
+    background: var(--bg-primary);
+}
+
+.film-grid-container .section-title {
+    font-size: 2.2rem;
+    margin: 0 0 30px 0;
+    padding-bottom: 5px;
+    border-bottom: 3px solid var(--accent-primary);
+    display: inline-block;
+    color: var(--text-accent);
+    font-weight: 700;
+}
+
+/* Film cards inherit from main style.css */
+.film-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 30px;
+    padding: 10px 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.film-grid::-webkit-scrollbar {
+    display: none;
+}
+
+/* ========================================
+   9. LIGHT MODE SPECIFIC ADJUSTMENTS
+======================================== */
+[data-theme="light"] .breadcrumb-nav {
+    background: var(--bg-primary);
+}
+
+[data-theme="light"] .watch-area-banner {
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .poster-container img {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .streaming-section {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .action-btn {
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .action-btn:hover {
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+/* ========================================
+   10. MOBILE RESPONSIVE
+======================================== */
+@media (max-width: 768px) {
+    .movie-details-panel {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        text-align: center;
+    }
+    
+    .poster-container {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .info-container h1 {
+        font-size: 2rem;
+    }
+    
+    .metadata-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .metadata-grid > div {
+        justify-content: center;
+    }
+    
+    .metadata-grid span:first-child {
+        min-width: auto;
+    }
+    
+    .actions-bar {
+        justify-content: center;
+    }
+    
+    .action-btn {
+        font-size: 0.9rem;
+        padding: 12px 20px;
+    }
+    
+    .watch-area-banner {
+        height: 40vh;
+        min-height: 300px;
+    }
+    
+    .player-wrapper {
+        padding-top: 75%;
+    }
+    
+    .breadcrumb-nav {
+        font-size: 0.85rem;
+        padding: 15px 4%;
+    }
+    
+    #you-may-also-like-container {
+        padding: 40px 4%;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-container h1 {
+        font-size: 1.5rem;
+    }
+    
+    .metadata-grid {
+        font-size: 0.85rem;
+    }
+    
+    .action-btn {
+        font-size: 0.85rem;
+        padding: 10px 18px;
+    }
+    
+    .watch-area-banner {
+        min-height: 250px;
+    }
+    
+    .play-icon-overlay {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+}
