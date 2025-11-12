@@ -5,22 +5,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Roy Entertainment – Home</title>
-    
-    <!-- FIX SOURCEMAPS - MUST BE FIRST SCRIPT -->
-    <script src="fix-sourcemaps.js"></script>
-    
-    <!-- Styles -->
+
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 
 <body class="hidden">
-    <!-- Preloader -->
     <div id="preloader">
         <div class="spinner"></div>
     </div>
 
-    <!-- Navbar -->
     <header class="main-header">
         <a href="index.html" class="logo">
             <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
@@ -29,7 +23,6 @@
         <nav class="main-nav">
             <a href="index.html" class="active">Home</a>
 
-            <!-- Movies Dropdown -->
             <div class="dropdown">
                 <span class="dropdown-toggle">Movies <i class="fas fa-chevron-down"></i></span>
                 <div class="dropdown-menu">
@@ -39,7 +32,6 @@
                 </div>
             </div>
 
-            <!-- Genre Dropdown -->
             <div class="dropdown">
                 <span class="dropdown-toggle">Genre <i class="fas fa-chevron-down"></i></span>
                 <div class="dropdown-menu multi-column">
@@ -84,7 +76,6 @@
                 <i class="fas fa-search search-icon"></i>
             </div>
 
-            <!-- Theme Toggle Switch -->
             <div class="theme-switch-wrapper">
                 <label class="theme-switch" for="theme-checkbox">
                     <input type="checkbox" id="theme-checkbox" />
@@ -95,7 +86,6 @@
                 </label>
             </div>
 
-            <!-- Profile Button (shown when logged in) -->
             <div class="profile-dropdown" id="profile-dropdown" style="display: none;">
                 <button class="profile-btn" id="profile-btn">
                     <img src="img/avatars/avatar1.png" alt="Profile" class="profile-avatar" id="profile-avatar" />
@@ -103,7 +93,6 @@
                     <i class="fas fa-chevron-down"></i>
                 </button>
 
-                <!-- Profile Dropdown Menu -->
                 <div class="profile-menu" id="profile-menu">
                     <div class="profile-menu-header">
                         <img src="img/avatars/avatar1.png" alt="Profile" class="profile-menu-avatar"
@@ -184,7 +173,6 @@
                 </div>
             </div>
 
-            <!-- Login Button (shown when not logged in) -->
             <a href="login.html" class="login-btn" id="login-btn">
                 <i class="fas fa-user"></i>
                 <span>Login</span>
@@ -192,9 +180,7 @@
         </div>
     </header>
 
-    <!-- Hero Slider with Gradient Overlay -->
     <section class="hero-slider">
-        <!-- Slide 1: Asur -->
         <div class="slide" style="background-image: url('img/movie-banner-1.png')" data-movie-id="asur">
             <div class="slide-content">
                 <h2>Asur</h2>
@@ -209,7 +195,6 @@
             </div>
         </div>
 
-        <!-- Slide 2: Lazy Assassin -->
         <div class="slide" style="background-image: url('img/movie-banner-2.webp')" data-movie-id="lazy-assassin">
             <div class="slide-content">
                 <h2>Lazy Assassin</h2>
@@ -224,7 +209,6 @@
             </div>
         </div>
 
-        <!-- Slide 3: Rudrapur -->
         <div class="slide" style="background-image: url('img/movie-banner-3.png')" data-movie-id="rudrapur">
             <div class="slide-content">
                 <h2>Rudrapur</h2>
@@ -239,16 +223,11 @@
             </div>
         </div>
 
-        <!-- Gradient Overlay for smooth transition -->
         <div class="hero-gradient-overlay"></div>
     </section>
 
     <div id="slider-dots" class="slider-dots"></div>
 
-    <!-- Continue Watching (Injected by dynamic-loader.js) -->
-    <!-- This will be populated from continue-watching.html -->
-
-    <!-- Our Productions -->
     <main class="film-grid-container" id="our-productions">
         <h2 class="section-title">Our Productions</h2>
         <div class="film-grid">
@@ -373,10 +352,6 @@
         </div>
     </main>
 
-    <!-- Featured Cast & Directors (Injected by dynamic-loader.js) -->
-    <!-- This will be populated from featured-cast.html -->
-
-    <!-- Footer -->
     <footer class="main-footer">
         <div class="footer-logo">
             <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
@@ -384,7 +359,6 @@
         </div>
         <p>&copy; 2025 Roy Entertainment. All rights reserved.</p>
 
-        <!-- Footer Links -->
         <div class="footer-links">
             <a href="index.html">Home</a>
             <a href="#our-productions">Our Productions</a>
@@ -406,7 +380,6 @@
         </div>
     </footer>
 
-    <!-- Avatar Selector Modal -->
     <div id="avatar-modal" class="modal">
         <div class="modal-content avatar-selector">
             <div class="modal-header">
@@ -438,7 +411,6 @@
         </div>
     </div>
 
-    <!-- Upload Photo Modal -->
     <div id="upload-modal" class="modal">
         <div class="modal-content upload-selector">
             <div class="modal-header">
@@ -462,7 +434,6 @@
         </div>
     </div>
 
-    <!-- App Download Modal -->
     <div id="app-download-modal" class="modal">
         <div class="modal-content app-download">
             <div class="modal-header">
@@ -495,7 +466,6 @@
         </div>
     </div>
 
-    <!-- logout modal -->
     <div id="custom-confirm-modal" class="custom-modal-overlay">
         <div class="custom-modal-content">
             <p id="custom-confirm-message">Are you sure?</p>
@@ -506,24 +476,16 @@
         </div>
     </div>
 
-    <!-- Scripts - UPDATED ORDER AND CDN -->
-    
-    <!-- Supabase SDK - Using UNPKG without source maps -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 
-    <!-- Your Supabase Configuration -->
     <script src="supabase-config.js"></script>
 
-    <!-- Authentication Service -->
-    <script src="auth-service.js"></script>
-
-    <!-- Your existing scripts -->
-    <script src="theme.js"></script>
-    <script src="profile.js"></script>
+    <script src="auth-service.js" defer></script>
+    <script src="theme.js" defer></script>
+    <script src="profile.js" defer></script>
     <script src="script.js" defer></script>
     <script src="dynamic-loader.js" defer></script>
-
     
-</body>
+    </body>
 
 </html>

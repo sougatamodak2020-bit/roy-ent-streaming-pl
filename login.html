@@ -5,35 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Login - Roy Entertainment</title>
     
-    <!-- FIX SOURCEMAPS - MUST BE FIRST SCRIPT -->
-    <script src="fix-sourcemaps.js"></script>
-    
-    <!-- Styles -->
     <link rel="stylesheet" href="login.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 </head>
 <body>
-    <!-- Animated background shapes -->
     <div class="bg-shapes">
         <div class="shape"></div>
         <div class="shape"></div>
         <div class="shape"></div>
     </div>
 
-    <!-- Login Container -->
     <div class="login-container">
         <div class="glass-card">
-            <!-- Logo Section -->
             <div class="logo-section">
                 <div class="logo">Roy Entertainment</div>
                 <p class="tagline">Your Gateway to Unlimited Entertainment</p>
             </div>
 
-            <!-- Login Form -->
             <div class="form-wrapper active" id="login-form">
                 <h2 class="form-title">Welcome Back</h2>
                 
-                <!-- Social Login Buttons -->
                 <div class="social-login-section">
                     <button class="social-btn google" id="google-login">
                         <i class="fab fa-google"></i>
@@ -49,7 +40,6 @@
                     </button>
                 </div>
 
-                <!-- Divider -->
                 <div class="divider">
                     <span>OR</span>
                 </div>
@@ -99,17 +89,14 @@
                     <p>Don't have an account? <a href="#" id="show-signup">Create Account</a></p>
                 </div>
 
-                <!-- Back to Home -->
                 <div class="back-home">
                     <a href="index.html"><i class="fas fa-home"></i> Back to Home</a>
                 </div>
             </div>
 
-            <!-- Sign Up Form -->
             <div class="form-wrapper" id="signup-form">
                 <h2 class="form-title">Create Account</h2>
                 
-                <!-- Social Login Buttons -->
                 <div class="social-login-section">
                     <button class="social-btn google" id="google-signup">
                         <i class="fab fa-google"></i>
@@ -125,7 +112,6 @@
                     </button>
                 </div>
 
-                <!-- Divider -->
                 <div class="divider">
                     <span>OR</span>
                 </div>
@@ -197,13 +183,11 @@
                     <p>Already have an account? <a href="#" id="show-login">Sign In</a></p>
                 </div>
 
-                <!-- Back to Home -->
                 <div class="back-home">
                     <a href="index.html"><i class="fas fa-home"></i> Back to Home</a>
                 </div>
             </div>
 
-            <!-- Follow Us Section -->
             <div class="follow">
                 <h4>Follow us</h4>
                 <div class="icon">
@@ -227,7 +211,6 @@
         </div>
     </div>
 
-    <!-- logout modal -->
     <div id="custom-confirm-modal" class="custom-modal-overlay">
         <div class="custom-modal-content">
             <p id="custom-confirm-message">Are you sure?</p>
@@ -238,60 +221,17 @@
         </div>
     </div>
 
-    <!-- Scripts - UPDATED ORDER AND CDN -->
-    
-    <!-- Supabase SDK - Using UNPKG without source maps -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+
     <script src="supabase-config.js"></script>
-    <script src="auth-service.js"></script>
-    <script src="profile.js"></script>
-    <script src="login.js"></script>
 
+    <script src="auth-service.js" defer></script>
+    <script src="theme.js" defer></script>
+    <script src="profile.js" defer></script>
+    <script src="script.js" defer></script>
+    <script src="dynamic-loader.js" defer></script>
 
-    <!-- CRITICAL: Source map fix MUST be first -->
-    <script src="fix-sourcemaps.js"></script>
-    
-    <!-- Load Supabase cleanly -->
-    <script src="supabase-loader.js"></script>
-    
-    <!-- Wait for Supabase before loading config -->
-    <script>
-        // Wait for Supabase to be available
-        function waitForSupabase(callback) {
-            if (window.supabase) {
-                callback();
-            } else {
-                setTimeout(() => waitForSupabase(callback), 100);
-            }
-        }
-        
-        waitForSupabase(() => {
-            // Load configuration after Supabase is ready
-            const configScript = document.createElement('script');
-            configScript.src = 'supabase-config.js';
-            document.body.appendChild(configScript);
-            
-            // Load other scripts after config
-            configScript.onload = () => {
-                const scripts = [
-                    'auth-service.js',
-                    'theme.js',
-                    'profile.js',
-                    'script.js',
-                    'dynamic-loader.js'
-                ];
-                
-                scripts.forEach(src => {
-                    const script = document.createElement('script');
-                    script.src = src;
-                    script.defer = true;
-                    document.body.appendChild(script);
-                });
-            };
-        });
-    </script>
-    
+    <script src="login.js" defer></script>
 
 </body>
 </html>

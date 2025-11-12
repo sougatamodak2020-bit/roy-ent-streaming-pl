@@ -5,21 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watch History - Roy Entertainment</title>
     
-    <!-- FIX SOURCEMAPS - MUST BE FIRST SCRIPT -->
-    <script src="fix-sourcemaps.js"></script>
-    
-    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="watch-history.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 </head>
 <body>
-    <!-- Preloader -->
     <div id="preloader">
         <div class="spinner"></div>
     </div>
 
-    <!-- Use same header from index.html -->
     <header class="main-header">
         <a href="index.html" class="logo">
             <img src="img/logo.jpg" alt="Roy Entertainment Logo"/>
@@ -65,8 +59,7 @@
         </div>
 
         <div id="history-grid" class="history-grid">
-            <!-- History items will be loaded here -->
-        </div>
+            </div>
 
         <div id="no-history" class="no-history" style="display:none;">
             <i class="fas fa-film"></i>
@@ -84,7 +77,6 @@
         <p>&copy; 2025 Roy Entertainment. All rights reserved.</p>
     </footer>
 
-    <!-- logout modal -->
     <div id="custom-confirm-modal" class="custom-modal-overlay">
         <div class="custom-modal-content">
             <p id="custom-confirm-message">Are you sure?</p>
@@ -95,19 +87,53 @@
         </div>
     </div>
 
-    <!-- Scripts - UPDATED ORDER AND CDN -->
-    
-    <!-- Supabase SDK - Using UNPKG without source maps -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+
     <script src="supabase-config.js"></script>
-    <script src="auth-service.js"></script>
-    <script src="theme.js"></script>
-    <script src="profile.js"></script>
+
+    <script src="auth-service.js" defer></script>
+    <script src="theme.js" defer></script>
+    <script src="profile.js" defer></script>
+    <script src="script.js" defer></script>
+    <script src="dynamic-loader.js" defer></script>
+
     <script>
-        // Load watch history
-        async function loadWatchHistory() {
-            if (!window.authService || !authService.isLoggedIn()) {
+        // This function will be called by the button's onclick
+        async function clearWatchHistory() {
+            // Wait until authService is ready
+            if (!window.authService) {
+                console.error('Auth service not ready');
+                return;
+            }
+            
+            window.showConfirmation('Are you sure you want to clear all watch history?', async () => {
+                try {
+                    const user = authService.getCurrentUser();
+                    if (!user) {
+                        window.showNotification('You must be logged in', 'error');
+                        return;
+                    }
+                    
+                    // FIXED: This now deletes from the Supabase database
+                    const { error } = await supabaseClient
+                        .from('watch_history')
+                        .delete()
+                        .eq('user_id', user.id);
+
+                    if (error) throw error;
+                    
+                    window.showNotification('Watch history cleared', 'success');
+                    loadWatchHistory(window.authService); // Reload the list
+                } catch (error) {
+                    console.error('Error clearing history:', error);
+                    window.showNotification('Failed to clear history', 'error');
+                }
+            });
+        }
+        
+        // This function loads the history data
+        async function loadWatchHistory(authService) {
+            if (!authService || !authService.isLoggedIn()) {
                 window.location.href = 'login.html?redirect=watch-history.html';
                 return;
             }
@@ -128,7 +154,7 @@
                                 </div>
                             </div>
                             <div class="history-info">
-                                <h3>${item.movie_id.replace('-', ' ').toUpperCase()}</h3>
+                                <h3>${item.movie_id.replace(/-/g, ' ').toUpperCase()}</h3>
                                 <p>${Math.round(item.progress || 0)}% watched</p>
                                 <small>${new Date(item.timestamp).toLocaleDateString()}</small>
                             </div>
@@ -145,28 +171,26 @@
             }
 
             // Hide preloader
-            setTimeout(() => {
-                document.getElementById('preloader').style.display = 'none';
-            }, 500);
+            const preloader = document.getElementById('preloader');
+            if (preloader) {
+                preloader.style.display = 'none';
+            }
         }
 
-        async function clearWatchHistory() {
-            window.showConfirmation('Are you sure you want to clear all watch history?', () => {
-                // Clear from database
-                localStorage.removeItem('watchProgress');
-                window.showNotification('Watch history cleared', 'success');
-                loadWatchHistory();
-            });
+        // Helper to wait for authService, which initializes itself
+        function waitForAuthService(callback) {
+            if (window.authService) {
+                callback(window.authService);
+            } else {
+                // Check again shortly
+                setTimeout(() => waitForAuthService(callback), 100);
+            }
         }
-
-        // Load on page load
+        
+        // After the DOM is loaded, wait for the authService to be ready, then load history
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(loadWatchHistory, 1000);
+            waitForAuthService(loadWatchHistory);
         });
     </script>
-
-
-
-
 </body>
 </html>

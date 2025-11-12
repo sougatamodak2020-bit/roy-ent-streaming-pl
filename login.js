@@ -41,7 +41,8 @@ const checkPasswordStrength = (password) => {
     if (password.match(/[a-z]+/)) strength++;
     if (password.match(/[A-Z]+/)) strength++;
     if (password.match(/[0-9]+/)) strength++;
-    if (password.match(/[$@#&!]+/)) strength++;
+    // FIX: Check for *any* non-alphanumeric character
+    if (password.match(/[^a-zA-Z0-9]+/)) strength++; 
     return strength;
 };
 
@@ -58,13 +59,20 @@ const waitForAuthService = () => {
         // Timeout after 10 seconds
         setTimeout(() => {
             clearInterval(checkInterval);
-            resolve(null);
+            resolve(null); // Resolve with null if it times out
         }, 10000);
     });
 };
 
 // Main initialization
 document.addEventListener('DOMContentLoaded', async () => {
+    
+    // ====================================================================
+    // 💡 FIX: This line removes the logout modal from the login page.
+    // This element should not be here, as its CSS is not loaded.
+    document.getElementById('custom-confirm-modal')?.remove();
+    // ====================================================================
+
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
     const showSignupBtn = document.getElementById('show-signup');
@@ -168,22 +176,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const input = document.getElementById(inputId);
         
         if (toggle && input) {
-            // Remove any existing listeners
-            const newToggle = toggle.cloneNode(true);
-            toggle.parentNode.replaceChild(newToggle, toggle);
-            
-            newToggle.addEventListener('click', () => {
-                const currentInput = document.getElementById(inputId);
-                if (currentInput) {
-                    if (currentInput.type === 'password') {
-                        currentInput.type = 'text';
-                        newToggle.classList.remove('fa-eye');
-                        newToggle.classList.add('fa-eye-slash');
-                    } else {
-                        currentInput.type = 'password';
-                        newToggle.classList.remove('fa-eye-slash');
-                        newToggle.classList.add('fa-eye');
-                    }
+            toggle.addEventListener('click', () => {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    toggle.classList.remove('fa-eye');
+                    toggle.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    toggle.classList.remove('fa-eye-slash');
+                    toggle.classList.add('fa-eye');
                 }
             });
         }
@@ -231,14 +232,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const googleButtons = document.querySelectorAll('#google-login, #google-signup');
     googleButtons.forEach(btn => {
         if (btn) {
-            // Remove existing listeners
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
-            
-            newBtn.addEventListener('click', (e) => {
+            btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const errorId = newBtn.id.includes('login') ? 'login-error' : 'signup-error';
-                handleGoogleSignIn(newBtn, errorId);
+                const errorId = btn.id.includes('login') ? 'login-error' : 'signup-error';
+                handleGoogleSignIn(btn, errorId);
             });
         }
     });
@@ -279,14 +276,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const facebookButtons = document.querySelectorAll('#facebook-login, #facebook-signup');
     facebookButtons.forEach(btn => {
         if (btn) {
-            // Remove existing listeners
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
-            
-            newBtn.addEventListener('click', (e) => {
+            btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const errorId = newBtn.id.includes('login') ? 'login-error' : 'signup-error';
-                handleFacebookSignIn(newBtn, errorId);
+                const errorId = btn.id.includes('login') ? 'login-error' : 'signup-error';
+                handleFacebookSignIn(btn, errorId);
             });
         }
     });
@@ -327,14 +320,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const githubButtons = document.querySelectorAll('#github-login, #github-signup');
     githubButtons.forEach(btn => {
         if (btn) {
-            // Remove existing listeners
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
-            
-            newBtn.addEventListener('click', (e) => {
+            btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const errorId = newBtn.id.includes('login') ? 'login-error' : 'signup-error';
-                handleGitHubSignIn(newBtn, errorId);
+                const errorId = btn.id.includes('login') ? 'login-error' : 'signup-error';
+                handleGitHubSignIn(btn, errorId);
             });
         }
     });
@@ -345,11 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const signupFormElement = document.getElementById('signupForm');
     if (signupFormElement) {
-        // Remove existing listeners
-        const newForm = signupFormElement.cloneNode(true);
-        signupFormElement.parentNode.replaceChild(newForm, signupFormElement);
-        
-        newForm.addEventListener('submit', async (e) => {
+        signupFormElement.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const name = document.getElementById('signup-name')?.value.trim() || '';
@@ -408,7 +393,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (submitBtn) submitBtn.textContent = 'Success!';
                     
                     // Clear form
-                    newForm.reset();
+                    signupFormElement.reset();
 
                     // Handle redirect based on email confirmation requirement
                     if (!result.requiresEmailConfirmation) {
@@ -446,11 +431,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const loginFormElement = document.getElementById('loginForm');
     if (loginFormElement) {
-        // Remove existing listeners
-        const newForm = loginFormElement.cloneNode(true);
-        loginFormElement.parentNode.replaceChild(newForm, loginFormElement);
-        
-        newForm.addEventListener('submit', async (e) => {
+        loginFormElement.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const email = document.getElementById('login-email')?.value.trim() || '';
@@ -518,11 +499,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const forgotPasswordLinks = document.querySelectorAll('.forgot-password');
     forgotPasswordLinks.forEach(link => {
         if (link) {
-            // Remove existing listeners
-            const newLink = link.cloneNode(true);
-            link.parentNode.replaceChild(newLink, link);
-            
-            newLink.addEventListener('click', async (e) => {
+            link.addEventListener('click', async (e) => {
                 e.preventDefault();
                 
                 // Create a custom modal for email input

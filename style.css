@@ -1501,11 +1501,98 @@ input:checked+.slider:before {
     padding: 50px 5%;
 }
 
+
+/* ========================================
+UI FIX: Add this to the BOTTOM of style.css
+========================================
+*/
+
+/* This makes .movie-grid (from movies.html) 
+  behave exactly like .film-grid (from index.html) 
+*/
 .movie-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
+    padding: 0 5%;
+    margin-top: 30px;
 }
+
+/* This makes .film-card (your movie card) 
+  style correctly when it's inside .movie-grid.
+  This fixes the genres, text, and spacing.
+*/
+.movie-grid .film-card {
+    width: 100%;
+    flex: 1 1 auto;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease-out;
+    cursor: pointer;
+}
+
+.movie-grid .film-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(210, 4, 45, 0.4);
+}
+
+.movie-grid .film-card .card-banner {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+}
+
+.movie-grid .film-card .card-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.movie-grid .film-card:hover .card-banner img {
+    transform: scale(1.05);
+}
+
+.movie-grid .film-card .card-content {
+    padding: 20px;
+}
+
+.movie-grid .film-card .card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-accent);
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.movie-grid .film-card .card-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.movie-grid .film-card .card-info .genre {
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.movie-grid .film-card .card-info .rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--accent-secondary);
+}
+
 
 /* ========================================
    23. LIGHT MODE SPECIFIC ENHANCEMENTS

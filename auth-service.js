@@ -17,8 +17,8 @@ class AuthService {
             // Handle OAuth callback if present
             await this.handleOAuthCallback();
             
-            // Get initial session
-            const { data: { session }, error } = await supabase.auth.getSession();
+            // Get initial session - FIX: Use supabaseClient
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
             
             if (error) {
                 console.error('Session error:', error);
@@ -33,8 +33,8 @@ class AuthService {
                 this.updateUIForLoggedOutUser();
             }
 
-            // Listen for auth state changes
-            supabase.auth.onAuthStateChange(async (event, session) => {
+            // Listen for auth state changes - FIX: Use supabaseClient
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 console.log('Auth event:', event);
                 
                 switch (event) {
@@ -82,8 +82,8 @@ class AuthService {
                 // Clean up URL
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
-                // Get session
-                const { data: { session }, error } = await supabase.auth.getSession();
+                // Get session - FIX: Use supabaseClient
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
                 
                 if (error) throw error;
                 
@@ -104,7 +104,8 @@ class AuthService {
     setupSessionCheck() {
         // Check session every 30 seconds
         this.sessionCheckInterval = setInterval(async () => {
-            const { data: { session }, error } = await supabase.auth.getSession();
+            // FIX: Use supabaseClient
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
             
             if (error) {
                 console.error('Session check error:', error);
@@ -131,7 +132,8 @@ class AuthService {
         if (!this.currentUser) return;
 
         try {
-            let { data, error } = await supabase
+            // FIX: Use supabaseClient
+            let { data, error } = await supabaseClient
                 .from('profiles')
                 .select('*')
                 .eq('id', this.currentUser.id)
@@ -170,7 +172,8 @@ class AuthService {
         };
 
         try {
-            const { data, error } = await supabase
+            // FIX: Use supabaseClient
+            const { data, error } = await supabaseClient
                 .from('profiles')
                 .insert([profile])
                 .select()
@@ -188,13 +191,14 @@ class AuthService {
     // Sign up with email
     async signUpWithEmail(email, password, name) {
         try {
-            // Check if email already exists
-            const { data: existingUser } = await supabase.auth.signInWithPassword({
+            // Check if email already exists - FIX: Use supabaseClient
+            const { data: existingUser } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: 'dummy_check_password'
             });
 
-            const { data, error } = await supabase.auth.signUp({
+            // FIX: Use supabaseClient
+            const { data, error } = await supabaseClient.auth.signUp({
                 email: email,
                 password: password,
                 options: {
@@ -240,7 +244,8 @@ class AuthService {
     // Sign in with email
     async signInWithEmail(email, password) {
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
+            // FIX: Use supabaseClient
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password
             });
@@ -249,7 +254,8 @@ class AuthService {
 
             // Update last login in profile
             if (data.user) {
-                await supabase
+                // FIX: Use supabaseClient
+                await supabaseClient
                     .from('profiles')
                     .update({ last_login: new Date().toISOString() })
                     .eq('id', data.user.id);
@@ -271,7 +277,8 @@ class AuthService {
     // Sign in with Google
     async signInWithGoogle() {
         try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            // FIX: Use supabaseClient
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: window.location.origin,
@@ -298,7 +305,8 @@ class AuthService {
     // Sign in with GitHub
     async signInWithGitHub() {
         try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            // FIX: Use supabaseClient
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'github',
                 options: {
                     redirectTo: window.location.origin,
@@ -320,7 +328,8 @@ class AuthService {
     // Sign in with Facebook
     async signInWithFacebook() {
         try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            // FIX: Use supabaseClient
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'facebook',
                 options: {
                     redirectTo: window.location.origin,
@@ -342,7 +351,8 @@ class AuthService {
     // Reset password
     async resetPassword(email) {
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            // FIX: Use supabaseClient
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/reset-password.html`
             });
 
@@ -363,7 +373,8 @@ class AuthService {
     // Update password
     async updatePassword(newPassword) {
         try {
-            const { error } = await supabase.auth.updateUser({
+            // FIX: Use supabaseClient
+            const { error } = await supabaseClient.auth.updateUser({
                 password: newPassword
             });
 
@@ -388,7 +399,8 @@ class AuthService {
         try {
             // Update user metadata if name or avatar changed
             if (updates.name || updates.avatar) {
-                const { error: authError } = await supabase.auth.updateUser({
+                // FIX: Use supabaseClient
+                const { error: authError } = await supabaseClient.auth.updateUser({
                     data: {
                         name: updates.name || this.userProfile?.name,
                         full_name: updates.name || this.userProfile?.name,
@@ -399,8 +411,8 @@ class AuthService {
                 if (authError) throw authError;
             }
 
-            // Update profile in database
-            const { data, error } = await supabase
+            // Update profile in database - FIX: Use supabaseClient
+            const { data, error } = await supabaseClient
                 .from('profiles')
                 .update({
                     ...updates,
@@ -446,19 +458,20 @@ class AuthService {
             const fileExt = file.name.split('.').pop();
             const fileName = `${this.currentUser.id}/${Date.now()}.${fileExt}`;
             
-            // First, create the bucket if it doesn't exist
-            const { data: buckets } = await supabase.storage.listBuckets();
+            // First, create the bucket if it doesn't exist - FIX: Use supabaseClient
+            const { data: buckets } = await supabaseClient.storage.listBuckets();
             const profilesBucket = buckets?.find(b => b.name === 'profiles');
             
             if (!profilesBucket) {
-                await supabase.storage.createBucket('profiles', {
+                // FIX: Use supabaseClient
+                await supabaseClient.storage.createBucket('profiles', {
                     public: true,
                     fileSizeLimit: 5242880 // 5MB
                 });
             }
 
-            // Upload to Supabase Storage
-            const { data, error } = await supabase.storage
+            // Upload to Supabase Storage - FIX: Use supabaseClient
+            const { data, error } = await supabaseClient.storage
                 .from('profiles')
                 .upload(fileName, file, {
                     cacheControl: '3600',
@@ -467,8 +480,8 @@ class AuthService {
 
             if (error) throw error;
 
-            // Get public URL
-            const { data: { publicUrl } } = supabase.storage
+            // Get public URL - FIX: Use supabaseClient
+            const { data: { publicUrl } } = supabaseClient.storage
                 .from('profiles')
                 .getPublicUrl(fileName);
 
@@ -498,7 +511,8 @@ class AuthService {
         try {
             const progress = (currentTime / duration) * 100;
             
-            const { error } = await supabase
+            // FIX: Use supabaseClient
+            const { error } = await supabaseClient
                 .from('watch_history')
                 .upsert({
                     user_id: this.currentUser.id,
@@ -525,7 +539,8 @@ class AuthService {
         if (!this.currentUser) return [];
 
         try {
-            const { data, error } = await supabase
+            // FIX: Use supabaseClient
+            const { data, error } = await supabaseClient
                 .from('watch_history')
                 .select('*')
                 .eq('user_id', this.currentUser.id)
@@ -549,8 +564,8 @@ class AuthService {
         }
 
         try {
-            // Get current favorites
-            const { data: profile } = await supabase
+            // Get current favorites - FIX: Use supabaseClient
+            const { data: profile } = await supabaseClient
                 .from('profiles')
                 .select('favorites')
                 .eq('id', this.currentUser.id)
@@ -563,8 +578,8 @@ class AuthService {
                 return;
             }
 
-            // Add to favorites
-            const { error } = await supabase
+            // Add to favorites - FIX: Use supabaseClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({
                     favorites: [...currentFavorites, movieId]
@@ -587,8 +602,8 @@ class AuthService {
         if (!this.currentUser) return;
 
         try {
-            // Get current favorites
-            const { data: profile } = await supabase
+            // Get current favorites - FIX: Use supabaseClient
+            const { data: profile } = await supabaseClient
                 .from('profiles')
                 .select('favorites')
                 .eq('id', this.currentUser.id)
@@ -597,8 +612,8 @@ class AuthService {
             const currentFavorites = profile?.favorites || [];
             const newFavorites = currentFavorites.filter(id => id !== movieId);
 
-            // Update favorites
-            const { error } = await supabase
+            // Update favorites - FIX: Use supabaseClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({
                     favorites: newFavorites
@@ -618,7 +633,8 @@ class AuthService {
     // Sign out
     async signOut() {
         try {
-            const { error } = await supabase.auth.signOut();
+            // FIX: Use supabaseClient
+            const { error } = await supabaseClient.auth.signOut();
             if (error) throw error;
 
             // Clear session check interval
@@ -744,9 +760,10 @@ class AuthService {
 // Initialize auth service
 let authService = null;
 
-// Wait for Supabase to be ready
+// Wait for Supabase CLIENT to be ready
 const initializeAuthService = () => {
-    if (typeof supabase !== 'undefined') {
+    // FIX: Wait for supabaseClient, not the base supabase library
+    if (typeof supabaseClient !== 'undefined') {
         authService = new AuthService();
         window.authService = authService;
         console.log('%c🔐 Supabase Auth Service Ready', 'color: #3ECF8E; font-weight: bold; font-size: 14px');
@@ -766,6 +783,7 @@ if (document.readyState === 'loading') {
 window.handleLogout = async function() {
     // Use the new custom confirmation
     window.showConfirmation('Are you sure you want to log out?', async () => {
-        await authService.logout();
+        // FIX: The function is named signOut(), not logout()
+        await authService.signOut();
     });
 }
