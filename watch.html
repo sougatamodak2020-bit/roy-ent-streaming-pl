@@ -6,16 +6,21 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Watch Now - Roy Entertainment</title>
     
+    <!-- Styles -->
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="watch.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 
 <body>
+    <!-- Preloader -->
     <div id="preloader">
         <div class="spinner"></div>
     </div>
 
+    <!-- ======================================= -->
+    <!-- 1. FULL HEADER (This fixes your empty header)  -->
+    <!-- ======================================= -->
     <header class="main-header">
         <a href="index.html" class="logo">
             <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
@@ -34,7 +39,8 @@
             <div class="dropdown">
                 <span class="dropdown-toggle">Genre <i class="fas fa-chevron-down"></i></span>
                 <div class="dropdown-menu" id="genre-menu">
-                    </div>
+                    <!-- Genres will be loaded by script.js -->
+                </div>
             </div>
             <a href="index.html#our-productions">Productions</a>
         </nav>
@@ -65,15 +71,26 @@
         </div>
     </header>
 
+    <!-- ================================================================ -->
+    <!-- 2. All BODY SECTIONS (Ready to be filled by watch.js) -->
+    <!-- ================================================================ -->
+
+    <!-- Breadcrumb Section -->
     <nav class="breadcrumb-nav">
-        </nav>
+        <!-- This will be filled by watch.js -->
+    </nav>
 
+    <!-- Banner Section -->
     <section class="watch-area-banner" id="watch-area-banner">
-        </section>
+        <!-- This will be filled by watch.js -->
+    </section>
 
+    <!-- Movie Details Section -->
     <div class="movie-details-panel">
-        </div>
+        <!-- This will be filled by watch.js -->
+    </div>
 
+    <!-- Video Player Section -->
     <div class="streaming-section" id="streaming-section">
         <h2 class="player-title">Now Playing</h2>
         <div class="player-wrapper">
@@ -84,14 +101,19 @@
         </div>
     </div>
 
+    <!-- Recommendations Section -->
     <div id="you-may-also-like-container">
         <div class="film-grid-container">
             <h2 class="section-title">You May Also Like</h2>
             <div class="film-grid" id="recommendations-grid">
-                </div>
+                <!-- This will be filled by watch.js -->
+            </div>
         </div>
     </div>
 
+    <!-- ======================================= -->
+    <!-- 3. FULL FOOTER (From your reference)  -->
+    <!-- ======================================= -->
     <footer class="main-footer">
         <div class="footer-content">
             <div class="footer-section about">
@@ -150,6 +172,9 @@
         </div>
     </footer>
 
+    <!-- ======================================= -->
+    <!-- 4. MODALS (From your reference) -->
+    <!-- ======================================= -->
     <div id="avatar-modal" class="modal"></div>
     <div id="upload-modal" class="modal"></div>
     <div id="app-download-modal" class="modal"></div>
@@ -164,12 +189,17 @@
         </div>
     </div>
 
+    <!-- ================================================================ -->
+    <!-- 5. CORRECT DYNAMIC SCRIPT LIST -->
+    <!-- ================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="auth-service.js" defer></script>
     <script src="theme.js" defer></script>
     <script src="profile.js" defer></script>
+    <!-- script.js is REQUIRED for the header's dropdowns, search, and profile to work -->
     <script src="script.js" defer></script> 
+    <!-- watch.js (your dynamic version) loads last to fill the page -->
     <script src="watch.js" defer></script>
 </body>
 </html>
