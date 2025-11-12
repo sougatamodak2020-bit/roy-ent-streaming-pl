@@ -8,9 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * =================================================================
-     * FIX: Robust YouTube URL parser
-     * This new function will get the video ID from any common YouTube link
-     * and correctly build the embed URL.
+     * FIX #1: Robust YouTube URL parser
+     * This will get the video ID from any common YouTube link.
      * =================================================================
      */
     function getYouTubeEmbedUrl(url) {
@@ -76,7 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data: movie, error } = await supabaseClient
                 .from('movies')
                 .select('*')
-                .eq('id', currentMovieId)
+                // =========================================================
+                // FIX #2: Use .ilike() for a case-insensitive match
+                // This works with your text-based IDs (e.g., "lazy-assassin")
+                // =========================================================
+                .ilike('id', currentMovieId) 
                 .single();
 
             if (error) throw error;
@@ -86,8 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
             populateUI(movie);
             
             // 3. Load recommendations
-            // --- FIX: Pass the singular 'genre' column ---
-            loadRecommendations(movie.genre); 
+            // --- FIX #3: Pass the singular 'genre' column & current ID ---
+            loadRecommendations(movie.genre, movie.id); 
             
             // 4. Update watch history (if user is logged in)
             if (window.authService && authService.isLoggedIn()) {
@@ -96,7 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error loading movie:', error);
-            document.getElementById('streaming-section').innerHTML = `<p class="error-message">Could not load movie details.</p>`;
+            document.getElementById('streaming-section').innerHTML = `
+                <h2 class="player-title">Movie Not Found</h2>
+                <p class="error-message">The movie you're looking for (ID: ${currentMovieId}) could not be found. 
+                Please check the URL or go back to the homepage.</p>
+                <a href="index.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">Go Home</a>
+            `;
         } finally {
             // Hide preloader
             const preloader = document.getElementById('preloader');
@@ -197,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Load "You May Also Like"
      */
-    async function loadRecommendations(genres) {
+    async function loadRecommendations(genres, currentMovieId) { // Pass currentMovieId
         const grid = document.getElementById('recommendations-grid');
         if (!grid || !genres || genres.length === 0) return;
 
@@ -206,9 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data, error } = await supabaseClient
                 .from('movies')
                 .select('*')
-                // --- FIX: Use singular 'genre' column for query ---
+                // --- FIX #3: Use singular 'genre' column for query ---
                 .or(`genre.cs.{${genres.join(',')}}`) // 'cs' = contains (for array)
-                .neq('id', currentMovieId)
+                .neq('id', currentMovieId) // Exclude the movie you're watching
                 .limit(6);
 
             if (error) throw error;
@@ -245,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('watch_history')
                 .upsert({
                     user_id: user.id,
-                    movie_id: movieId,
+                    movie_id: movieId, // Stores the text ID (e.g., "lazy-assassin")
                     timestamp: new Date().toISOString()
                 }, { onConflict: 'user_id, movie_id' });
 
@@ -253,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Watch history updated.');
             
         } catch (error) {
-            console.error('Error updating watch history:', error);
+            console.error('Error updating watch. history:', error);
         }
     }
 

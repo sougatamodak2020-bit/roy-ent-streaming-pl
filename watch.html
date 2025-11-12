@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
@@ -9,13 +10,60 @@
     <link rel="stylesheet" href="watch.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
+
 <body>
     <div id="preloader">
         <div class="spinner"></div>
     </div>
 
     <header class="main-header">
-        </header>
+        <a href="index.html" class="logo">
+            <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
+            <span>Roy Entertainment</span>
+        </a>
+        <nav class="main-nav">
+            <a href="index.html">Home</a>
+            <div class="dropdown">
+                <span class="dropdown-toggle">Movies <i class="fas fa-chevron-down"></i></span>
+                <div class="dropdown-menu">
+                    <a href="movies.html?category=latest">Latest</a>
+                    <a href="movies.html?category=popular">Popular</a>
+                    <a href="movies.html?category=upcoming">Upcoming</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <span class="dropdown-toggle">Genre <i class="fas fa-chevron-down"></i></span>
+                <div class="dropdown-menu" id="genre-menu">
+                    </div>
+            </div>
+            <a href="index.html#our-productions">Productions</a>
+        </nav>
+        <div class="search-and-profile">
+            <input type="text" id="search-bar" placeholder="Search..." />
+            <div class="profile-dropdown">
+                <img id="profile-avatar" src="img/default-avatar.png" alt="Profile" />
+                <div class="profile-menu">
+                    <div id="user-info" style="display: none;">
+                        <span id="user-name"></span>
+                        <span id="user-email"></span>
+                    </div>
+                    <a href="watch-history.html" id="watch-history-link">Watch History</a>
+                    <a href="#" id="theme-toggle">
+                        <i class="fas fa-sun"></i> 
+                        <span>Light Mode</span>
+                    </a>
+                    <a href="#" id="logout-btn" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> 
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            <a href="login.html" id="login-btn" class="login-btn" style="display: none;">
+                <i class="fas fa-user"></i>
+                <span>Login</span>
+            </a>
+        </div>
+    </header>
 
     <nav class="breadcrumb-nav">
         </nav>
@@ -39,19 +87,73 @@
     <div id="you-may-also-like-container">
         <div class="film-grid-container">
             <h2 class="section-title">You May Also Like</h2>
-            <div class="film-grid" id="recommendations-grid"></div>
+            <div class="film-grid" id="recommendations-grid">
+                </div>
         </div>
     </div>
 
     <footer class="main-footer">
-       </footer>
-
-    <div id="avatar-modal" class="modal">
-       </div>
-    <div id="upload-modal" class="modal">
+        <div class="footer-content">
+            <div class="footer-section about">
+                <a href="index.html" class="logo">
+                    <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
+                    <span>Roy Entertainment</span>
+                </a>
+                <p>
+                    Roy Entertainment is your ultimate destination for streaming exclusive
+                    web series, movies, and short films. Experience high-quality
+                    entertainment anytime, anywhere.
+                </p>
+                <div class="social-links">
+                    <a href="https://facebook.com/royentertainment" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://instagram.com/royentertainment" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.youtube.com/@RoyEntertainmentfilmz" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="movies.html">Movies</a></li>
+                    <li><a href="index.html#our-productions">Productions</a></li>
+                    <li><a href="login.html">Login</a></li>
+                </ul>
+            </div>
+            <div class="footer-section links">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section app-download">
+                <h3>Get Our App</h3>
+                <p>Download our app for an enhanced streaming experience.</p>
+                <div class="app-buttons">
+                    <a href="#" class="download-btn playstore">
+                        <i class="fab fa-google-play"></i>
+                        <div>
+                            <small>GET IT ON</small>
+                            <strong>Google Play</strong>
+                        </div>
+                    </a>
+                    <a href="#" class="download-btn appstore">
+                        <i class="fab fa-apple"></i>
+                        <div>
+                            <small>Download on the</small>
+                            <strong>App Store</strong>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
-    <div id="app-download-modal" class="modal">
-       </div>
+    </footer>
+
+    <div id="avatar-modal" class="modal"></div>
+    <div id="upload-modal" class="modal"></div>
+    <div id="app-download-modal" class="modal"></div>
+    
     <div id="custom-confirm-modal" class="custom-modal-overlay">
          <div class="custom-modal-content">
             <p id="custom-confirm-message">Are you sure?</p>
@@ -63,16 +165,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-
     <script src="supabase-config.js"></script>
-
     <script src="auth-service.js" defer></script>
     <script src="theme.js" defer></script>
     <script src="profile.js" defer></script>
-    <script src="script.js" defer></script>
-    <script src="dynamic-loader.js" defer></script>
-
+    <script src="script.js" defer></script> 
     <script src="watch.js" defer></script>
-
 </body>
 </html>
