@@ -1,5 +1,5 @@
 // ========================================
-// WATCH PAGE - ASYNC (FIXED PLAYER & UI)
+// WATCH PAGE - FIXED VERSION
 // Roy Entertainment
 // ========================================
 
@@ -7,44 +7,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMovieId = null;
 
     /**
-     * =================================================================
-     * FIX #1: Robust YouTube URL parser
-     * This will get the video ID from any common YouTube link.
-     * =================================================================
+     * Robust YouTube URL parser
      */
     function getYouTubeEmbedUrl(url) {
         if (!url) return null;
 
         let videoId = null;
         try {
-            // Try to parse as a full URL
             const urlObj = new URL(url);
             
             if (urlObj.hostname.includes('youtube.com')) {
-                // Standard link: https://www.youtube.com/watch?v=VIDEO_ID
                 videoId = urlObj.searchParams.get('v');
             } else if (urlObj.hostname.includes('youtu.be')) {
-                // Short link: https://youtu.be/VIDEO_ID
                 videoId = urlObj.pathname.slice(1);
             } else if (urlObj.hostname.includes('youtube-nocookie.com') || url.includes('/embed/')) {
-                // Embed link: https://.../embed/VIDEO_ID
                 const parts = urlObj.pathname.split('/');
                 videoId = parts[parts.length - 1];
             }
         } catch (e) {
-            // It's not a full URL, so it's probably just the ID
-            // Simple check: 11-12 characters, no spaces or slashes
             if (url.length >= 11 && url.length <= 12 && !url.includes(' ') && !url.includes('/')) {
                 videoId = url;
             }
         }
 
-        // Return the full embed URL with recommended parameters
         return videoId 
             ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&loop=1&playlist=${videoId}` 
             : null;
     }
-
 
     /**
      * Helper to get URL parameters
@@ -55,63 +44,132 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /**
+     * Ensure array format for genres
+     */
+    function ensureArray(value) {
+        if (Array.isArray(value)) return value;
+        if (typeof value === 'string') {
+            // Handle comma-separated strings
+            if (value.includes(',')) {
+                return value.split(',').map(g => g.trim());
+            }
+            return [value];
+        }
+        return [];
+    }
+
+    /**
      * Main function to load movie details
      */
     async function loadMovie() {
-        // Wait for supabaseClient
+        // Wait for supabaseClient with timeout
+        let attempts = 0;
+        while (!window.supabaseClient && attempts < 100) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+            attempts++;
+        }
+
         if (!window.supabaseClient) {
-            setTimeout(loadMovie, 50);
+            console.error('Supabase client not initialized');
+            showError('Database connection failed. Please refresh the page.');
             return;
         }
 
         currentMovieId = getQueryParam('movie');
         if (!currentMovieId) {
-            document.body.innerHTML = '<h1>Movie not found.</h1>';
+            showError('No movie specified in URL.');
             return;
         }
 
         try {
-            // 1. Fetch movie details
-            const { data: movie, error } = await supabaseClient
+            console.log('Loading movie with ID:', currentMovieId);
+            
+            // Fetch movie details - try both exact match and ilike
+            let { data: movie, error } = await supabaseClient
                 .from('movies')
                 .select('*')
-                // =========================================================
-                // FIX #2: Use .ilike() for a case-insensitive match
-                // This works with your text-based IDs (e.g., "lazy-assassin")
-                // =========================================================
-                .ilike('id', currentMovieId) 
+                .eq('id', currentMovieId)
                 .single();
 
-            if (error) throw error;
-            if (!movie) throw new Error('Movie not found in database.');
+            // If exact match fails, try case-insensitive
+            if (error || !movie) {
+                const result = await supabaseClient
+                    .from('movies')
+                    .select('*')
+                    .ilike('id', currentMovieId)
+                    .single();
+                
+                movie = result.data;
+                error = result.error;
+            }
 
-            // 2. Populate UI elements
+            if (error) {
+                console.error('Database error:', error);
+                throw error;
+            }
+            
+            if (!movie) {
+                throw new Error('Movie not found in database.');
+            }
+
+            console.log('Movie loaded:', movie);
+
+            // Populate UI elements
             populateUI(movie);
             
-            // 3. Load recommendations
-            // --- FIX #3: Pass the singular 'genre' column & current ID ---
-            loadRecommendations(movie.genre, movie.id); 
+            // IMPORTANT: Show the streaming section
+            const streamingSection = document.getElementById('streaming-section');
+            if (streamingSection) {
+                streamingSection.classList.add('active');
+                streamingSection.style.display = 'block'; // Force display
+            }
             
-            // 4. Update watch history (if user is logged in)
+            // Load recommendations
+            const genres = ensureArray(movie.genre);
+            if (genres.length > 0) {
+                loadRecommendations(genres, movie.id);
+            }
+            
+            // Update watch history
             if (window.authService && authService.isLoggedIn()) {
                 await updateWatchHistory(movie.id);
             }
 
         } catch (error) {
             console.error('Error loading movie:', error);
-            document.getElementById('streaming-section').innerHTML = `
-                <h2 class="player-title">Movie Not Found</h2>
-                <p class="error-message">The movie you're looking for (ID: ${currentMovieId}) could not be found. 
-                Please check the URL or go back to the homepage.</p>
-                <a href="index.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">Go Home</a>
-            `;
+            showError(`Could not load movie (ID: ${currentMovieId}). ${error.message}`);
         } finally {
-            // Hide preloader
-            const preloader = document.getElementById('preloader');
-            if (preloader) {
-                preloader.style.opacity = '0';
-                setTimeout(() => { preloader.style.display = 'none'; }, 300);
-            }
+            hidePreloader();
+        }
+    }
+
+    /**
+     * Show error message
+     */
+    function showError(message) {
+        const streamingSection = document.getElementById('streaming-section');
+        if (streamingSection) {
+            streamingSection.style.display = 'block';
+            streamingSection.innerHTML = `
+                <h2 class="player-title">Error Loading Movie</h2>
+                <p class="error-message">${message}</p>
+                <a href="index.html" class="action-btn primary" style="margin-top: 20px; display: inline-block;">
+                    <i class="fas fa-home"></i> Go to Homepage
+                </a>
+            `;
+        }
+    }
+
+    /**
+     * Hide preloader
+     */
+    function hidePreloader() {
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            preloader.style.opacity = '0';
+            setTimeout(() => { 
+                preloader.style.display = 'none'; 
+            }, 300);
         }
     }
 
@@ -119,123 +177,171 @@ document.addEventListener('DOMContentLoaded', () => {
      * Fill all UI elements with movie data
      */
     function populateUI(movie) {
-        // Page Title
-        document.title = `${movie.title} - Roy Entertainment`;
+        try {
+            // Page Title
+            document.title = `${movie.title} - Roy Entertainment`;
 
-        // Breadcrumb
-        const breadcrumbNav = document.querySelector('.breadcrumb-nav');
-        breadcrumbNav.innerHTML = `
-            <a href="index.html">Home</a>
-            <span class="separator">/</span>
-            <a href="movies.html">Movies</a>
-            <span class="separator">/</span>
-            <span class="current-page">${movie.title}</span>
-        `;
+            // Breadcrumb
+            const breadcrumbNav = document.querySelector('.breadcrumb-nav');
+            if (breadcrumbNav) {
+                breadcrumbNav.innerHTML = `
+                    <a href="index.html">Home</a>
+                    <span class="separator">/</span>
+                    <a href="movies.html">Movies</a>
+                    <span class="separator">/</span>
+                    <span class="current-page">${movie.title}</span>
+                `;
+            }
 
-        // Banner
-        const banner = document.getElementById('watch-area-banner');
-        if (banner && movie.backdrop_url) {
-            banner.style.backgroundImage = `
-                linear-gradient(to right, var(--overlay) 20%, transparent 80%),
-                linear-gradient(to top, var(--bg-primary) 5%, transparent 30%),
-                url(${movie.backdrop_url})
-            `;
-        }
+            // Banner
+            const banner = document.getElementById('watch-area-banner');
+            if (banner && movie.backdrop_url) {
+                banner.style.backgroundImage = `
+                    linear-gradient(to right, rgba(0,0,0,0.7) 20%, transparent 80%),
+                    linear-gradient(to top, rgba(0,0,0,0.5) 5%, transparent 30%),
+                    url('${movie.backdrop_url}')
+                `;
+            }
 
-        // Details Panel
-        const detailsPanel = document.querySelector('.movie-details-panel');
-        detailsPanel.innerHTML = `
-            <div class="poster-container">
-                <img src="${movie.poster_url}" alt="${movie.title} Poster">
-            </div>
-            <div class="info-container">
-                <h1>${movie.title}</h1>
-                <p class="plot-summary">${movie.description}</p>
+            // Ensure genres and actors are arrays
+            const genres = ensureArray(movie.genre);
+            const actors = ensureArray(movie.actors || movie.actor || []);
+
+            // Details Panel
+            const detailsPanel = document.querySelector('.movie-details-panel');
+            if (detailsPanel) {
+                detailsPanel.innerHTML = `
+                    <div class="poster-container">
+                        <img src="${movie.poster_url || 'img/placeholder-poster.jpg'}" 
+                             alt="${movie.title} Poster"
+                             onerror="this.src='img/placeholder-poster.jpg'">
+                    </div>
+                    <div class="info-container">
+                        <h1>${movie.title}</h1>
+                        <p class="plot-summary">${movie.description || 'No description available.'}</p>
+                        
+                        <div class="metadata-grid">
+                            ${actors.length > 0 ? `
+                                <div>
+                                    <span>Starring</span>
+                                    <span>${actors.join(', ')}</span>
+                                </div>
+                            ` : ''}
+                            ${genres.length > 0 ? `
+                                <div>
+                                    <span>Genre</span>
+                                    <span>${genres.join(', ')}</span>
+                                </div>
+                            ` : ''}
+                            ${movie.release_date ? `
+                                <div>
+                                    <span>Release</span>
+                                    <span>${new Date(movie.release_date).getFullYear()}</span>
+                                </div>
+                            ` : ''}
+                            ${movie.rating ? `
+                                <div>
+                                    <span>Rating</span>
+                                    <span>
+                                        <i class="fas fa-star" style="color: #FFC107;"></i> 
+                                        ${parseFloat(movie.rating).toFixed(1)}/10
+                                    </span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="actions-bar">
+                            <button id="share-btn" class="action-btn">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
+                            <button id="watchlist-btn" class="action-btn">
+                                <i class="fas fa-plus"></i> Add to Watchlist
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Setup Player
+            const player = document.getElementById('movie-player');
+            const streamingSection = document.getElementById('streaming-section');
+            
+            if (movie.trailer_url) {
+                const embedUrl = getYouTubeEmbedUrl(movie.trailer_url);
                 
-                <div class="metadata-grid">
-                    <div>
-                        <span>Starring</span>
-                        <span>${movie.actors.join(', ')}</span>
-                    </div>
-                    <div>
-                        <span>Genre</span>
-                        <span>${movie.genre.join(', ')}</span>
-                    </div>
-                    <div>
-                        <span>Release</span>
-                        <span>${new Date(movie.release_date).getFullYear()}</span>
-                    </div>
-                    <div>
-                        <span>Rating</span>
-                        <span>
-                            <i class="fas fa-star" style="color: #FFC107;"></i> ${movie.rating.toFixed(1)}/10
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="actions-bar">
-                    <button id="share-btn" class="action-btn">
-                        <i class="fas fa-share-alt"></i> Share
-                    </button>
-                    <button id="watchlist-btn" class="action-btn">
-                        <i class="fas fa-plus"></i> Add to Watchlist
-                    </button>
-                </div>
-            </div>
-        `;
-
-        // 5. Setup Player
-        const player = document.getElementById('movie-player');
-        const streamingSection = document.getElementById('streaming-section');
-        
-        // Use our new robust function
-        const embedUrl = getYouTubeEmbedUrl(movie.trailer_url);
-        
-        if (embedUrl) {
-            player.src = embedUrl;
-        } else {
-            // Hide player and show a message
-            streamingSection.innerHTML = `
-                <h2 class="player-title">Trailer Not Available</h2>
-                <p class="error-message">We're sorry, but the trailer for this movie is currently not available.</p>
-            `;
+                if (embedUrl && player) {
+                    player.src = embedUrl;
+                    console.log('Player URL set:', embedUrl);
+                } else if (streamingSection) {
+                    streamingSection.innerHTML = `
+                        <h2 class="player-title">Trailer Not Available</h2>
+                        <p class="error-message">The trailer URL is invalid or not properly formatted.</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9em;">URL provided: ${movie.trailer_url}</p>
+                    `;
+                }
+            } else if (streamingSection) {
+                streamingSection.innerHTML = `
+                    <h2 class="player-title">Trailer Not Available</h2>
+                    <p class="error-message">No trailer is available for this movie yet.</p>
+                `;
+            }
+        } catch (error) {
+            console.error('Error populating UI:', error);
+            showError('Error displaying movie information.');
         }
     }
 
     /**
      * Load "You May Also Like"
      */
-    async function loadRecommendations(genres, currentMovieId) { // Pass currentMovieId
+    async function loadRecommendations(genres, currentMovieId) {
         const grid = document.getElementById('recommendations-grid');
-        if (!grid || !genres || genres.length === 0) return;
+        if (!grid || !genres || genres.length === 0) {
+            console.log('Cannot load recommendations: no genres or grid element');
+            return;
+        }
 
         try {
-            // Fetch 6 movies that share at least one genre, are not the current movie
-            const { data, error } = await supabaseClient
+            // Build query for movies with similar genres
+            let query = supabaseClient
                 .from('movies')
                 .select('*')
-                // --- FIX #3: Use singular 'genre' column for query ---
-                .or(`genre.cs.{${genres.join(',')}}`) // 'cs' = contains (for array)
-                .neq('id', currentMovieId) // Exclude the movie you're watching
+                .neq('id', currentMovieId)
                 .limit(6);
+
+            // If genre is stored as array in database
+            if (genres.length > 0) {
+                query = query.contains('genre', genres);
+            }
+
+            const { data, error } = await query;
 
             if (error) throw error;
             
-            grid.innerHTML = data.map(m => `
-                <div class="film-card" data-movie-id="${m.id}">
-                    <div class="card-thumbnail">
-                        <img src="${m.poster_url}" alt="${m.title}">
+            if (data && data.length > 0) {
+                grid.innerHTML = data.map(m => `
+                    <div class="film-card" data-movie-id="${m.id}" style="cursor: pointer;">
+                        <div class="card-thumbnail">
+                            <img src="${m.poster_url || 'img/placeholder-poster.jpg'}" 
+                                 alt="${m.title}"
+                                 onerror="this.src='img/placeholder-poster.jpg'">
+                        </div>
+                        <div class="card-info">
+                            <h3>${m.title}</h3>
+                            <p>${m.release_date ? new Date(m.release_date).getFullYear() : 'TBA'} 
+                               ${m.rating ? `• ${parseFloat(m.rating).toFixed(1)}/10` : ''}</p>
+                        </div>
                     </div>
-                    <div class="card-info">
-                        <h3>${m.title}</h3>
-                        <p>${new Date(m.release_date).getFullYear()} • ${m.rating.toFixed(1)}/10</p>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            } else {
+                grid.innerHTML = '<p class="error-message">No recommendations available.</p>';
+            }
             
         } catch (error) {
             console.error('Error loading recommendations:', error);
-            grid.innerHTML = '<p class="error-message">Could not load recommendations.</p>';
+            if (grid) {
+                grid.innerHTML = '<p class="error-message">Could not load recommendations.</p>';
+            }
         }
     }
 
@@ -243,25 +349,30 @@ document.addEventListener('DOMContentLoaded', () => {
      * Add to watch history
      */
     async function updateWatchHistory(movieId) {
-        if (!authService) return;
+        if (!window.authService) return;
+        
         const user = authService.getCurrentUser();
         if (!user) return;
 
         try {
-            // 'upsert' will insert or update if 'user_id' and 'movie_id' match
             const { error } = await supabaseClient
                 .from('watch_history')
                 .upsert({
                     user_id: user.id,
-                    movie_id: movieId, // Stores the text ID (e.g., "lazy-assassin")
-                    timestamp: new Date().toISOString()
-                }, { onConflict: 'user_id, movie_id' });
+                    movie_id: movieId,
+                    watched_at: new Date().toISOString()
+                }, { 
+                    onConflict: 'user_id,movie_id' 
+                });
 
-            if (error) throw error;
-            console.log('Watch history updated.');
+            if (error) {
+                console.error('Watch history error:', error);
+            } else {
+                console.log('Watch history updated successfully');
+            }
             
         } catch (error) {
-            console.error('Error updating watch. history:', error);
+            console.error('Error updating watch history:', error);
         }
     }
 
@@ -274,47 +385,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const shareBtn = e.target.closest('#share-btn');
         if (shareBtn) {
             const shareUrl = window.location.href;
-            const movieTitle = document.querySelector('.info-container h1').textContent;
+            const movieTitle = document.querySelector('.info-container h1')?.textContent || 'Movie';
             
-            // Use modern Web Share API if available
             if (navigator.share) {
                 navigator.share({
                     title: `${movieTitle} - Roy Entertainment`,
                     text: `Check out ${movieTitle} on Roy Entertainment!`,
                     url: shareUrl,
-                }).catch(err => console.error('Share error:', err));
+                }).catch(err => console.log('Share cancelled'));
             } else {
-                // Fallback for clipboard
-                try {
-                    navigator.clipboard.writeText(shareUrl).then(() => {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    if (window.showNotification) {
                         window.showNotification('Link copied to clipboard!', 'success');
-                    }).catch(() => { // Fallback for http or older browsers
-                        const tempInput = document.createElement('input');
-                        tempInput.value = shareUrl;
-                        document.body.appendChild(tempInput);
-                        tempInput.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(tempInput);
-                        window.showNotification('Link copied to clipboard!', 'success');
-                    });
-                } catch (e) {
-                     window.showNotification('Failed to copy link.', 'error');
-                }
+                    } else {
+                        alert('Link copied to clipboard!');
+                    }
+                }).catch(() => {
+                    alert('Could not copy link');
+                });
             }
         }
     });
     
     // Handle clicks on recommendation cards
-    const recommendationsGrid = document.getElementById('recommendations-grid');
-    if(recommendationsGrid) {
-        recommendationsGrid.addEventListener('click', (e) => {
-             const card = e.target.closest('.film-card');
-            if (card && card.dataset.movieId) {
-                // Go to the new movie page
-                window.location.href = `watch.html?movie=${card.dataset.movieId}`;
-            }
-        });
-    }
+    document.body.addEventListener('click', (e) => {
+        const card = e.target.closest('.film-card');
+        if (card && card.dataset.movieId) {
+            window.location.href = `watch.html?movie=${card.dataset.movieId}`;
+        }
+    });
 
     // Initial load
     loadMovie();
