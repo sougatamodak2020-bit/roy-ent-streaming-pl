@@ -1,10 +1,6 @@
-// ========================================
-// MAIN SCRIPT - FINAL FIXED VERSION
-// Roy Entertainment
-// ========================================
+// ========================================\r\n// MAIN SCRIPT - FULLY ASYNC\r\n// Roy Entertainment\r\n// ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Main script loaded');
 
     /* --- PRELOADER --- */
     const preloader = document.getElementById('preloader');
@@ -18,257 +14,177 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    /* --- HERO SLIDER - FIXED VERSION --- */
-    function initializeSlider() {
-        const slider = document.querySelector('.hero-slider');
+    /* --- 1. SLIDER FUNCTIONALITY (for index.html) --- */
+    const slider = document.querySelector('.hero-slider');
+    if (slider) {
+        const slides = Array.from(document.querySelectorAll('.slide'));
+        const prevButton = document.getElementById('slide-prev');
+        const nextButton = document.getElementById('slide-next');
         const dotsContainer = document.getElementById('slider-dots');
-        
-        // Exit if no slider
-        if (!slider) {
-            console.log('No slider on this page');
-            return;
-        }
-
-        // Exit if no dots container
-        if (!dotsContainer) {
-            console.log('No dots container found');
-            return;
-        }
-
-        // Get slides
-        const slides = Array.from(slider.children).filter(el => el.classList.contains('slide'));
-        
-        if (slides.length === 0) {
-            console.log('No slides found');
-            return;
-        }
-
         let currentSlideIndex = 0;
         let autoScrollInterval = null;
 
-        // Create dots
-        dotsContainer.innerHTML = '';
-        slides.forEach((_, i) => {
-            const dot = document.createElement('button');
-            dot.classList.add('dot');
-            if (i === 0) dot.classList.add('active');
-            dot.addEventListener('click', () => {
-                currentSlideIndex = i;
-                updateSlider();
-                restartAutoScroll();
+        // =========================================================
+        // THIS IS THE FIX:
+        // We check if slides.length > 0 before trying to run the code.
+        // This stops the 'clientWidth' crash on other pages.
+        // =========================================================
+        if (slides.length > 0) {
+            let slideWidth = slides[0].clientWidth; // Now it's safe
+
+            // Create dots
+            slides.forEach((_, i) => {
+                const dot = document.createElement('button');
+                dot.classList.add('dot');
+                if (i === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => {
+                    currentSlideIndex = i;
+                    updateSlider();
+                    resetAutoScroll();
+                });
+                if(dotsContainer) dotsContainer.appendChild(dot);
             });
-            dotsContainer.appendChild(dot);
-        });
 
-        const dots = Array.from(dotsContainer.children);
+            const dots = document.querySelectorAll('.dot');
 
-        function updateSlider() {
-            // Get first slide width safely
-            const firstSlide = slides[0];
-            if (!firstSlide) return;
-            
-            const slideWidth = firstSlide.offsetWidth || window.innerWidth;
-            
-            if (slider) {
-                slider.scrollTo({
-                    left: currentSlideIndex * slideWidth,
-                    behavior: 'smooth'
+            function updateSlider() {
+                // Recalculate width on update, just in case
+                slideWidth = slides[0].clientWidth;
+                slider.style.transform = `translateX(-${currentSlideIndex * slideWidth}px)`;
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentSlideIndex);
                 });
             }
-            
-            // Update dots
-            dots.forEach((dot, i) => {
-                dot.classList.toggle('active', i === currentSlideIndex);
-            });
-        }
 
-        function nextSlide() {
-            currentSlideIndex = (currentSlideIndex + 1) % slides.length;
-            updateSlider();
-        }
+            function nextSlide() {
+                currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+                updateSlider();
+            }
 
-        function startAutoScroll() {
-            stopAutoScroll();
-            autoScrollInterval = setInterval(nextSlide, 5000);
-        }
+            function prevSlide() {
+                currentSlideIndex = (currentSlideIndex - 1 + slides.length) % slides.length;
+                updateSlider();
+            }
 
-        function stopAutoScroll() {
-            if (autoScrollInterval) {
+            function startAutoScroll() {
+                stopAutoScroll(); // Clear any existing
+                autoScrollInterval = setInterval(nextSlide, 5000); // 5 seconds
+            }
+
+            function stopAutoScroll() {
                 clearInterval(autoScrollInterval);
             }
-        }
 
-        function restartAutoScroll() {
-            stopAutoScroll();
+            function resetAutoScroll() {
+                stopAutoScroll();
+                startAutoScroll();
+            }
+            
+            window.addEventListener('resize', () => {
+                updateSlider();
+            });
+
+            if(nextButton) nextButton.addEventListener('click', () => {
+                nextSlide();
+                resetAutoScroll();
+            });
+            
+            if(prevButton) prevButton.addEventListener('click', () => {
+                prevSlide();
+                resetAutoScroll();
+            });
+
+            // Pause on hover
+            slider.addEventListener('mouseenter', stopAutoScroll);
+            slider.addEventListener('mouseleave', startAutoScroll);
+
             startAutoScroll();
         }
-
-        // Events
-        slider.addEventListener('mouseenter', stopAutoScroll);
-        slider.addEventListener('mouseleave', startAutoScroll);
-        window.addEventListener('resize', updateSlider);
-
-        // Start
-        startAutoScroll();
-        console.log('✅ Slider initialized');
     }
 
-    // Run slider init after delay
-    setTimeout(initializeSlider, 100);
+    
+    /* --- 2. HAMBURGER MENU TOGGLE --- */
+    // THIS SECTION IS INTENTIONALLY LEFT BLANK.
+    // The file "mobile-menu.js" now handles all mobile navigation.
+    // Keeping this empty prevents JavaScript conflicts.
 
-    /* --- SEARCH --- */
+
+    /* --- 3. GENRE DROPDOWN LOADER --- */
+    const genreMenu = document.getElementById('genre-menu');
+    
+    async function loadGenres() {
+        if (!genreMenu) return; // Only run if the element exists
+        if (genreMenu.children.length > 0) return;
+        genreMenu.innerHTML = '<a href="#">Loading...</a>';
+        
+        if (!window.supabaseClient) {
+            console.warn('Supabase not ready for genre loading, retrying...');
+            setTimeout(loadGenres, 100);
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient.rpc('get_all_genres');
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                genreMenu.innerHTML = data
+                    .sort() 
+                    .map(genre => {
+                        if (!genre) return ''; // Skip null/empty genres
+                        return `<a href="movies.html?genre=${encodeURIComponent(genre)}">${genre}</a>`;
+                    })
+                    .join('');
+            } else {
+                genreMenu.innerHTML = '<a href="#">No genres found</a>';
+            }
+        } catch (error) {
+            console.error('Error loading genres:', error);
+            genreMenu.innerHTML = '<a href="#">Error loading genres</a>';
+        }
+    }
+    loadGenres();
+
+
+    /* --- 4. SEARCH FUNCTIONALITY --- */
     const searchBar = document.getElementById('search-bar');
     if (searchBar) {
-        searchBar.addEventListener('keypress', (e) => {
+        searchBar.addEventListener('keypress', async (e) => { // <-- Made async
             if (e.key === 'Enter') {
-                const searchTerm = searchBar.value.trim();
-                if (searchTerm) {
-                    window.location.href = `movies.html?search=${encodeURIComponent(searchTerm)}`;
+                const searchTerm = searchBar.value.toLowerCase().trim();
+                if (!searchTerm || !window.supabaseClient) return;
+                
+                try {
+                    const { data: movie, error } = await supabaseClient
+                        .from('movies')
+                        .select('id, title') // Select id and title
+                        .ilike('title', `%${searchTerm}%`) // Case-insensitive "contains" search
+                        .limit(1)
+                        .single(); // Get the first match
+
+                    if (error) {
+                        console.warn('Search: No movie found', error);
+                        window.showNotification('Movie not found!', 'error');
+                        return;
+                    }
+                    
+                    if (movie) {
+                        if (window.authService && !window.authService.isLoggedIn()) {
+                            if (window.showLoginRequired) {
+                                window.showLoginRequired(movie.id);
+                            } else {
+                                window.location.href = `login.html?redirect=watch.html?movie=${movie.id}`;
+                            }
+                        } else {
+                            window.location.href = `watch.html?movie=${movie.id}`;
+                        }
+                    } 
+                } catch (error) {
+                    console.error('Search error:', error);
+                    window.showNotification('Error during search.', 'error');
                 }
             }
         });
     }
-
-    /* --- FILM CARDS --- */
-    document.body.addEventListener('click', (e) => {
-        const filmCard = e.target.closest('.film-card[data-movie-id]');
-        if (filmCard && !e.target.closest('a')) {
-            const movieId = filmCard.dataset.movieId;
-            if (movieId) {
-                window.location.href = `watch.html?movie=${movieId}`;
-            }
-        }
-    });
-
-    /* --- SMOOTH SCROLL --- */
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            if (targetId && targetId !== '#') {
-                e.preventDefault();
-                const target = document.querySelector(targetId);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }
-        });
-    });
 });
-
-/* --- GLOBAL FUNCTIONS --- */
-window.showLoginRequired = function(movieId = null) {
-    const popup = document.createElement('div');
-    popup.className = 'login-required-overlay';
-    popup.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-    `;
-    
-    let redirect = movieId ? `login.html?redirect=watch.html?movie=${movieId}` : 'login.html';
-    
-    popup.innerHTML = `
-        <div class="login-required-card" style="background: var(--bg-card); padding: 30px; border-radius: 10px;">
-            <i class="fas fa-lock" style="font-size: 3rem; color: var(--accent-primary);"></i>
-            <h2>Login Required</h2>
-            <p>Please login to watch this content</p>
-            <div class="popup-actions" style="margin-top: 20px;">
-                <a href="${redirect}" class="btn-primary" style="margin-right: 10px;">Login / Sign Up</a>
-                <button onclick="this.closest('.login-required-overlay').remove()" class="btn-secondary">Cancel</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(popup);
-};
-
-window.showNotification = function(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
-        color: white;
-        border-radius: 5px;
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transform: translateX(400px);
-        transition: transform 0.3s;
-    `;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
-        <span>${message}</span>
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => { notification.style.transform = 'translateX(0)'; }, 100);
-    setTimeout(() => {
-        notification.style.transform = 'translateX(400px)';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-};
-
-window.showConfirmation = function(message, onConfirm) {
-    const modal = document.getElementById('custom-confirm-modal');
-    if (modal) {
-        document.getElementById('custom-confirm-message').textContent = message;
-        modal.classList.add('show');
-        document.getElementById('custom-confirm-ok').onclick = () => {
-            modal.classList.remove('show');
-            if (onConfirm) onConfirm();
-        };
-        document.getElementById('custom-confirm-cancel').onclick = () => {
-            modal.classList.remove('show');
-        };
-    } else if (confirm(message) && onConfirm) {
-        onConfirm();
-    }
-};
-
-// Modal functions
-window.openAvatarSelector = () => document.getElementById('avatar-modal')?.classList.add('show');
-window.closeAvatarSelector = () => document.getElementById('avatar-modal')?.classList.remove('show');
-window.openUploadPhoto = () => document.getElementById('upload-modal')?.classList.add('show');
-window.closeUploadPhoto = () => document.getElementById('upload-modal')?.classList.remove('show');
-window.closeAppDownload = () => document.getElementById('app-download-modal')?.classList.remove('show');
-window.downloadApp = () => document.getElementById('app-download-modal')?.classList.add('show');
-
-window.selectAvatar = (url) => {
-    if (window.profileManager) window.profileManager.updateAvatar(url);
-    closeAvatarSelector();
-};
-
-window.uploadFromGallery = () => document.getElementById('file-input')?.click();
-window.uploadFromGoogleDrive = () => window.showNotification('Coming soon!', 'info');
-
-window.handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            if (window.profileManager) {
-                window.profileManager.updateAvatar(e.target.result);
-                closeUploadPhoto();
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
-window.openWatchHistory = () => window.location.href = 'watch-history.html';
-window.openSettings = () => window.showNotification('Settings coming soon!', 'info');
-window.changeLanguage = (lang) => window.showNotification(`Language: ${lang}`, 'success');
-window.handleLogout = () => {
-    window.showConfirmation('Log out?', () => {
-        if (window.authService) window.authService.signOut();
-    });
-};
