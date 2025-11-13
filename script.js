@@ -3,6 +3,27 @@
 // Roy Entertainment
 // ========================================
 
+
+// Add this at the very beginning of your main script
+window.addEventListener('DOMContentLoaded', async () => {
+    console.log('🔍 Debugging movie access on page load...');
+    
+    if (window.supabaseClient) {
+        // Test immediate access
+        const { data, error } = await window.supabaseClient
+            .from('movies')
+            .select('id, title')
+            .limit(1);
+        
+        if (error) {
+            console.error('❌ CRITICAL: Movies not accessible!', error);
+            alert('Movies cannot be loaded. Error: ' + error.message);
+        } else {
+            console.log('✅ Movies are accessible:', data);
+        }
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
 
     /* --- PRELOADER --- */

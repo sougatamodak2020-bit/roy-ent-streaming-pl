@@ -485,8 +485,44 @@
     <script src="theme.js" defer></script>
     <script src="profile.js" defer></script>
     <script src="script.js" defer></script>
+
+    <!-- Add this right after supabase-config.js in index.html -->
+    <script>
+        // Debug helper for other users
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            console.error('Global error:', msg, 'at', url, 'line:', lineNo);
+            return false;
+        };
+
+        // Ensure Supabase loads properly
+        window.addEventListener('load', async () => {
+            if (!window.supabaseClient) {
+                alert('Critical Error: Database connection failed. Please refresh the page.');
+                return;
+            }
+
+            // Test database connection
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('movies')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    console.error('Database test failed:', error);
+                    alert('Unable to connect to movie database. Please check your internet connection.');
+                } else {
+                    console.log('✅ Database connection successful');
+                }
+            } catch (e) {
+                console.error('Connection test error:', e);
+            }
+        });
+    </script>
+
+
     <script src="dynamic-loader.js" defer></script>
     <script src="mobile-menu.js" defer></script>
-    </body>
+</body>
 
 </html>

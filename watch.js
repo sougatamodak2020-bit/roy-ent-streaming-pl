@@ -14,17 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function getYouTubeEmbedUrl(url) {
         if (!url) return null;
-        
+
         console.log('Processing YouTube URL:', url);
         let videoId = null;
-        
+
         try {
             // Handle different YouTube URL formats
             const patterns = [
                 /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
                 /^([a-zA-Z0-9_-]{11})$/
             ];
-            
+
             for (const pattern of patterns) {
                 const match = url.match(pattern);
                 if (match) {
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 }
             }
-            
+
             // If still no match, try URL parsing
             if (!videoId) {
                 try {
@@ -52,11 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error('Error parsing YouTube URL:', e);
         }
-        
-        const embedUrl = videoId 
-            ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&controls=1` 
+
+        const embedUrl = videoId
+            ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&controls=1`
             : null;
-        
+
         console.log('Generated embed URL:', embedUrl);
         return embedUrl;
     }
@@ -107,20 +107,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Database error:', error);
                 throw new Error('Unable to load movie. Please try again.');
             }
-            
+
             if (!movie) throw new Error('Movie not found in database.');
 
             console.log(`✅ Movie loaded successfully:`, movie);
-            
+
             // 1. Fill in all the UI elements
             populateUI(movie);
-            
+
             // 2. Setup video playback
             setupVideoPlayback(movie);
 
             // 3. Load recommendations
             loadRecommendations(movie);
-            
+
             // 4. Update watch history (only if user is logged in)
             if (window.authService && window.authService.isLoggedIn()) {
                 // Don't await this, let it run in background
@@ -156,9 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set banner background using the correct field name
         const banner = document.getElementById('watch-area-banner');
         const backdropUrl = movie.banner || movie.poster || FALLBACK_BACKDROP;
-        
+
         console.log('Setting banner background with URL:', backdropUrl);
-        
+
         if (banner) {
             banner.style.backgroundImage = `
                 linear-gradient(to right, rgba(0,0,0,0.8) 20%, transparent 80%),
@@ -169,11 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Populate movie details panel
         const detailsPanel = document.querySelector('.movie-details-panel');
-        
+
         // Use correct field names from your database
         const posterUrl = movie.poster || FALLBACK_POSTER;
-        const genres = Array.isArray(movie.genre) ? movie.genre : 
-                      (movie.genre ? [movie.genre] : ['Unknown']);
+        const genres = Array.isArray(movie.genre) ? movie.genre :
+            (movie.genre ? [movie.genre] : ['Unknown']);
         const actors = movie.actors || 'N/A';
         const director = movie.director || 'N/A';
         const releaseYear = movie.release || 'N/A';
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         }
-        
+
         console.log('✅ UI populated successfully');
     }
 
@@ -257,11 +257,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const watchNowBtn = document.getElementById('watch-now-btn');
         const container = document.getElementById('video-banner-container');
         const player = document.getElementById('movie-player');
-        
+
         // Use the correct field name
         const trailerUrl = movie.youtube_link;
         console.log('YouTube URL from database:', trailerUrl);
-        
+
         // Get the embed URL
         const embedUrl = getYouTubeEmbedUrl(trailerUrl);
 
@@ -291,13 +291,13 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function loadRecommendations(currentMovie) {
         const grid = document.getElementById('recommendations-grid');
-        
+
         if (!grid) return;
 
         try {
             // Extract genres from current movie
-            const genres = Array.isArray(currentMovie.genre) ? currentMovie.genre : 
-                          (currentMovie.genre ? [currentMovie.genre] : []);
+            const genres = Array.isArray(currentMovie.genre) ? currentMovie.genre :
+                (currentMovie.genre ? [currentMovie.genre] : []);
 
             console.log('Looking for movies with genres:', genres);
 
@@ -318,9 +318,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Filter movies with matching genres
             if (genres.length > 0 && allMovies) {
                 recommendations = allMovies.filter(movie => {
-                    const movieGenres = Array.isArray(movie.genre) ? movie.genre : 
-                                      (movie.genre ? [movie.genre] : []);
-                    
+                    const movieGenres = Array.isArray(movie.genre) ? movie.genre :
+                        (movie.genre ? [movie.genre] : []);
+
                     return movieGenres.some(g => genres.includes(g));
                 });
             }
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const randomMovies = allMovies.filter(m => !recommendations.find(r => r.id === m.id));
                 recommendations = [...recommendations, ...randomMovies].slice(0, 6);
             }
-            
+
             if (recommendations.length > 0) {
                 grid.innerHTML = recommendations.map(movie => {
                     const poster = movie.poster || FALLBACK_POSTER;
@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const year = movie.release || 'N/A';
                     const runtime = movie.runtime || 'N/A';
                     const description = truncateText(movie.description, 100);
-                    
+
                     // Use exact homepage structure with description
                     return `
                         <article class="film-card" data-movie-id="${movie.id}">
@@ -360,12 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         </article>
                     `;
                 }).join('');
-                
+
                 console.log(`✅ Loaded ${recommendations.length} recommendations`);
             } else {
                 grid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; color: var(--text-secondary);">No recommendations found.</p>';
             }
-            
+
         } catch (error) {
             console.error('Error loading recommendations:', error);
             grid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; color: var(--text-secondary);">No recommendations available.</p>';
@@ -373,52 +373,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Update watch history - FIXED VERSION
-     */
+ * Update watch history - SILENT VERSION
+ */
     async function updateWatchHistory(movieId) {
         // Skip if no auth service or user not logged in
         if (!window.authService || !window.authService.isLoggedIn()) {
             return;
         }
-        
+
         const user = window.authService.getCurrentUser();
         if (!user) return;
 
         try {
-            // Try to insert watch history
-            const { data, error } = await supabaseClient
+            // Simple insert, ignore errors
+            await supabaseClient
                 .from('watch_history')
-                .upsert(
-                    {
-                        user_id: user.id,
-                        movie_id: movieId,
-                        watched_at: new Date().toISOString(),
-                        progress: 0
-                    },
-                    {
-                        onConflict: 'user_id,movie_id',
-                        ignoreDuplicates: true
-                    }
-                );
+                .insert({
+                    user_id: user.id,
+                    movie_id: movieId,
+                    watched_at: new Date().toISOString()
+                });
 
-            if (error) {
-                // If it's a unique constraint error, that's fine - movie was already in history
-                if (error.code === '23505' || error.message?.includes('duplicate')) {
-                    // Update the watched_at timestamp
-                    await supabaseClient
-                        .from('watch_history')
-                        .update({ watched_at: new Date().toISOString() })
-                        .eq('user_id', user.id)
-                        .eq('movie_id', movieId);
-                } else {
-                    console.log('Watch history not available:', error.message);
-                }
-            } else {
-                console.log('✅ Watch history updated');
-            }
+            console.log('Watch history updated');
         } catch (error) {
-            // Silently handle errors - watch history is not critical
-            console.log('Watch history feature not configured');
+            // Silently ignore - not critical
         }
     }
 
@@ -442,8 +420,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const preloader = document.getElementById('preloader');
         if (preloader) {
             preloader.style.opacity = '0';
-            setTimeout(() => { 
-                preloader.style.display = 'none'; 
+            setTimeout(() => {
+                preloader.style.display = 'none';
             }, 300);
         }
     }
@@ -459,13 +437,13 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Event Listeners
      */
-    
+
     // Share functionality
     document.addEventListener('click', (e) => {
         if (e.target.closest('#share-btn')) {
             const shareUrl = window.location.href;
             const movieTitle = document.querySelector('.info-container h1')?.textContent || 'Movie';
-            
+
             if (navigator.share) {
                 navigator.share({
                     title: `${movieTitle} - Roy Entertainment`,
@@ -482,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-    
+
     // Recommendations click handler
     const recommendationsGrid = document.getElementById('recommendations-grid');
     if (recommendationsGrid) {
