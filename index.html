@@ -331,6 +331,79 @@
     <script src="script.js" defer></script>
     <script src="dynamic-loader.js" defer></script>
     <script src="mobile-menu.js" defer></script>
+
+
+
+
+    <!-- Debug Helper Script -->
+<script>
+// Debug helper to check movie loading
+window.addEventListener('load', () => {
+    setTimeout(async () => {
+        console.log('=== MOVIE LOADING DEBUG ===');
+        
+        // Check Supabase
+        if (window.supabaseClient) {
+            console.log('✅ Supabase is ready');
+            
+            // Test query
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('movies')
+                    .select('id, title')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('❌ Database error:', error.message);
+                    console.log('Fix: Check RLS policies in Supabase dashboard');
+                } else {
+                    console.log('✅ Database accessible, sample movie:', data);
+                }
+            } catch (err) {
+                console.error('❌ Query failed:', err);
+            }
+        } else {
+            console.error('❌ Supabase not initialized');
+        }
+        
+        // Check DOM elements
+        const heroSlider = document.querySelector('.hero-slider');
+        const productionGrid = document.querySelector('#our-productions .film-grid');
+        
+        console.log('Hero slider found:', !!heroSlider);
+        console.log('Production grid found:', !!productionGrid);
+        
+        if (productionGrid) {
+            const movieCards = productionGrid.querySelectorAll('.film-card');
+            console.log('Number of movie cards displayed:', movieCards.length);
+            
+            if (movieCards.length === 0) {
+                console.warn('⚠️ No movie cards found. Attempting manual reload...');
+                if (window.debugMovieLoader) {
+                    await window.debugMovieLoader.reloadAll();
+                }
+            }
+        }
+        
+        console.log('=== END DEBUG ===');
+    }, 3000); // Wait 3 seconds for everything to load
+});
+
+// Manual reload function
+window.reloadMovies = async function() {
+    if (window.debugMovieLoader) {
+        console.log('Reloading all movies...');
+        await window.debugMovieLoader.reloadAll();
+        console.log('Reload complete!');
+    } else {
+        console.error('Movie loader not available');
+    }
+};
+
+console.log('💡 TIP: Type window.reloadMovies() in console to manually reload movies');
+</script>
+
+
 </body>
 
 </html>

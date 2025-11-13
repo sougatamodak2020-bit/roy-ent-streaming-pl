@@ -26,15 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const dotsContainer = document.getElementById('slider-dots');
         let currentSlideIndex = 0;
         let autoScrollInterval = null;
-        // REMOVED problematic line here - slideWidth declaration moved inside safety check
 
         // =========================================================
-        // THIS IS THE FIX:
-        // We check if slides.length > 0 before trying to run the code.
-        // This stops the 'clientWidth' crash on other pages.
+        // FIX: Check if slides exist before accessing them
         // =========================================================
         if (slides.length > 0) {
-            let slideWidth = slides[0].clientWidth; // Now it's actually safe inside the check
+            let slideWidth = slides[0].clientWidth; // Now it's safe
 
             // Create dots
             slides.forEach((_, i) => {
@@ -52,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dots = document.querySelectorAll('.dot');
 
             function updateSlider() {
-                // Recalculate width on update, just in case
+                // Recalculate width on update
                 slideWidth = slides[0].clientWidth;
                 slider.style.transform = `translateX(-${currentSlideIndex * slideWidth}px)`;
                 dots.forEach((dot, i) => {
@@ -71,8 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             function startAutoScroll() {
-                stopAutoScroll(); // Clear any existing
-                autoScrollInterval = setInterval(nextSlide, 5000); // 5 seconds
+                stopAutoScroll();
+                autoScrollInterval = setInterval(nextSlide, 5000);
             }
 
             function stopAutoScroll() {
@@ -108,16 +105,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
     /* --- 2. HAMBURGER MENU TOGGLE --- */
-    // THIS SECTION IS INTENTIONALLY LEFT BLANK.
-    // The file "mobile-menu.js" now handles all mobile navigation.
-    // Keeping this empty prevents JavaScript conflicts.
+    // Handled by mobile-menu.js
 
 
     /* --- 3. GENRE DROPDOWN LOADER --- */
     const genreMenu = document.getElementById('genre-menu');
     
     async function loadGenres() {
-        if (!genreMenu) return; // Only run if the element exists
+        if (!genreMenu) return;
         if (genreMenu.children.length > 0) return;
         genreMenu.innerHTML = '<a href="#">Loading...</a>';
         
@@ -128,24 +123,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const { data, error } = await supabaseClient.rpc('get_all_genres');
+            // First try to get genres from movies table
+            const { data: movies, error: moviesError } = await window.supabaseClient
+                .from('movies')
+                .select('genre');
 
-            if (error) throw error;
+            if (moviesError) throw moviesError;
 
-            if (data && data.length > 0) {
-                genreMenu.innerHTML = data
-                    .sort() 
-                    .map(genre => {
-                        if (!genre) return ''; // Skip null/empty genres
-                        return `<a href="movies.html?genre=${encodeURIComponent(genre)}">${genre}</a>`;
-                    })
+            // Extract unique genres
+            const genresSet = new Set();
+            movies.forEach(movie => {
+                if (movie.genre) {
+                    if (Array.isArray(movie.genre)) {
+                        movie.genre.forEach(g => genresSet.add(g));
+                    } else if (typeof movie.genre === 'string') {
+                        genresSet.add(movie.genre);
+                    }
+                }
+            });
+
+            const uniqueGenres = Array.from(genresSet).filter(Boolean).sort();
+
+            if (uniqueGenres.length > 0) {
+                genreMenu.innerHTML = uniqueGenres
+                    .map(genre => `<a href="movies.html?genre=${encodeURIComponent(genre)}">${genre}</a>`)
                     .join('');
             } else {
                 genreMenu.innerHTML = '<a href="#">No genres found</a>';
             }
         } catch (error) {
             console.error('Error loading genres:', error);
-            genreMenu.innerHTML = '<a href="#">Error loading genres</a>';
+            // Fallback to hardcoded genres
+            const fallbackGenres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Thriller'];
+            genreMenu.innerHTML = fallbackGenres
+                .map(genre => `<a href="movies.html?genre=${encodeURIComponent(genre)}">${genre}</a>`)
+                .join('');
         }
     }
     loadGenres();
@@ -154,22 +166,24 @@ document.addEventListener('DOMContentLoaded', () => {
     /* --- 4. SEARCH FUNCTIONALITY --- */
     const searchBar = document.getElementById('search-bar');
     if (searchBar) {
-        searchBar.addEventListener('keypress', async (e) => { // <-- Made async
+        searchBar.addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
                 const searchTerm = searchBar.value.toLowerCase().trim();
                 if (!searchTerm || !window.supabaseClient) return;
                 
                 try {
-                    const { data: movie, error } = await supabaseClient
+                    const { data: movie, error } = await window.supabaseClient
                         .from('movies')
-                        .select('id, title') // Select id and title
-                        .ilike('title', `%${searchTerm}%`) // Case-insensitive "contains" search
+                        .select('id, title')
+                        .ilike('title', `%${searchTerm}%`)
                         .limit(1)
-                        .single(); // Get the first match
+                        .single();
 
                     if (error) {
                         console.warn('Search: No movie found', error);
-                        window.showNotification('Movie not found!', 'error');
+                        if (window.showNotification) {
+                            window.showNotification('Movie not found!', 'error');
+                        }
                         return;
                     }
                     
@@ -186,7 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     } 
                 } catch (error) {
                     console.error('Search error:', error);
-                    window.showNotification('Error during search.', 'error');
+                    if (window.showNotification) {
+                        window.showNotification('Error during search.', 'error');
+                    }
                 }
             }
         });
