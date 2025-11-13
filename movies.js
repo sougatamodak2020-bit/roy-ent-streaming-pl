@@ -1,59 +1,6 @@
 // ========================================
-// MOVIES PAGE - WITH DESCRIPTION CARDS
+// MOVIES PAGE - PRODUCTION VERSION
 // ========================================
-
-
-
-// Add at the top of movies.js
-window.DEBUG_MODE = true; // Set to false in production
-
-async function debugSupabaseConnection() {
-    if (!window.DEBUG_MODE) return;
-    
-    console.group('🔍 Supabase Debug Info');
-    
-    // Check client
-    console.log('Client initialized:', !!window.supabaseClient);
-    
-    // Check session
-    try {
-        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
-        if (sessionError) {
-            console.error('Session error:', sessionError);
-        } else {
-            console.log('Current session:', session ? 'Logged in as ' + session.user.email : 'Anonymous');
-        }
-    } catch (e) {
-        console.error('Failed to check session:', e);
-    }
-    
-    // Test movie access
-    try {
-        const { data, error, status, count } = await window.supabaseClient
-            .from('movies')
-            .select('*', { count: 'exact', head: true });
-        
-        if (error) {
-            console.error('❌ Cannot access movies:', error);
-            console.error('Status:', status);
-            console.error('Full error:', {
-                message: error.message,
-                details: error.details,
-                hint: error.hint,
-                code: error.code
-            });
-        } else {
-            console.log('✅ Can access movies. Total count:', count);
-        }
-    } catch (e) {
-        console.error('Unexpected error:', e);
-    }
-    
-    console.groupEnd();
-}
-
-// Call this before loading movies
-debugSupabaseConnection();
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🎬 Movies page initializing...');
@@ -116,8 +63,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Wait for Supabase to initialize
     async function waitForSupabase() {
         let attempts = 0;
-        while (!window.supabaseClient && attempts < 100) {
-            await new Promise(resolve => setTimeout(resolve, 50));
+        const maxAttempts = 100;
+        
+        while (!window.supabaseClient && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
         
@@ -141,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             filterAndDisplayMovies();
         } catch (error) {
             console.error('❌ Initialization error:', error);
-            showError('Failed to initialize. Please refresh the page.');
+            showError('Failed to load movies. Please refresh the page.');
         } finally {
             hideLoading();
         }
@@ -279,7 +228,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const currentYear = new Date().getFullYear();
             switch (state.filters.category) {
                 case 'latest':
-                    // Movies from current year
                     filtered = filtered.filter(movie => {
                         const year = parseInt(movie.release) || 0;
                         return year === currentYear;
@@ -344,7 +292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateActiveFilters();
     }
 
-    // Create movie card - USING HOMEPAGE STYLE
+    // Create movie card
     function createMovieCard(movie) {
         const card = document.createElement('article');
         card.className = 'film-card';
@@ -357,7 +305,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const description = truncateText(movie.description, 100);
         const runtime = movie.runtime || 'N/A';
         
-        // Use exact homepage structure
         card.innerHTML = `
             <div class="rating-display">
                 <i class="fas fa-star"></i>
@@ -375,7 +322,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `;
         
-        // Add click event
         card.addEventListener('click', () => {
             window.location.href = `watch.html?movie=${movie.id}`;
         });
@@ -394,7 +340,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!append) {
             if (elements.movieGrid) {
                 elements.movieGrid.innerHTML = '';
-                // Use film-grid class to match homepage
                 elements.movieGrid.className = 'film-grid';
             }
         }
@@ -403,7 +348,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         newMovies.forEach((movie, index) => {
             const movieCard = createMovieCard(movie);
             if (movieCard) {
-                // Animation
                 movieCard.style.opacity = '0';
                 movieCard.style.animation = `fadeInUp 0.5s ease forwards`;
                 movieCard.style.animationDelay = `${index * 0.1}s`;
@@ -552,20 +496,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // View mode buttons - if you want to implement list view later
-        elements.viewModeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const view = btn.dataset.view;
-                if (view !== state.viewMode) {
-                    state.viewMode = view;
-                    elements.viewModeButtons.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    // For now, we'll keep grid view only
-                    displayMovies();
-                }
-            });
-        });
-
         // Search from header
         const headerSearchBar = document.getElementById('search-bar');
         if (headerSearchBar) {
@@ -623,7 +553,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideLoading();
     }
 
-    // Initialize the page
-    console.log('🚀 Starting initialization...');
-    init();
+    // Initialize with delay to ensure Supabase is ready
+    setTimeout(init, 500);
 });

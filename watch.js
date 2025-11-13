@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div>
                         <span>Rating</span>
                         <span>
-                            <i class="fas fa-star" style="color: #FFC107;"></i> 
+                            <i class.fas fa-star" style="color: #FFC107;"></i> 
                             ${(movie.rating || 0).toFixed(1)}/10
                         </span>
                     </div>
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadRecommendations(genres, currentMovieId) {
         const grid = document.getElementById('recommendations-grid');
         if (!grid || !genres || genres.length === 0) {
-            grid.innerHTML = '<p class="error-message" style="text-align: center; grid-column: 1 / -1;">No recommendations available.</p>';
+            grid.innerHTML = '<p class.error-message" style="text-align: center; grid-column: 1 / -1;">No recommendations available.</p>';
             return;
         }
 
@@ -234,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) throw error;
             
+            // --- THIS IS THE FIX for the "undefined" 404 error ---
             grid.innerHTML = data.map(m => {
                 const poster = m.poster_url || FALLBACK_POSTER; 
                 return `
@@ -251,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error('Error loading recommendations:', error);
-            grid.innerHTML = '<p class="error-message" style="text-align: center; grid-column: 1 / -1;">Could not load recommendations.</p>';
+            grid.innerHTML = '<p class.error-message" style="text-align: center; grid-column: 1 / -1;">Could not load recommendations.</p>';
         }
     }
 
@@ -264,7 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!user) return;
 
         try {
-            // This code is now correct because your 'timestamp' column exists
+            // This code includes the timestamp.
+            // If you still get a 400 error, you need to add the 'timestamp' column to your Supabase table.
             const { error } = await supabaseClient
                 .from('watch_history')
                 .upsert({
