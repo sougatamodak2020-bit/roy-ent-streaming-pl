@@ -6,21 +6,17 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Watch Now - Roy Entertainment</title>
     
-    <!-- Styles -->
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="watch.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 
 <body>
-    <!-- Preloader -->
     <div id="preloader">
         <div class="spinner"></div>
     </div>
 
-    <!-- ======================================= -->
-    <!-- 1. FULL HEADER (This fixes your empty header)  -->
-    <!-- ======================================= -->
+    <!-- Use exact same header as homepage -->
     <header class="main-header">
         <a href="index.html" class="logo">
             <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
@@ -28,6 +24,7 @@
         </a>
         <nav class="main-nav">
             <a href="index.html">Home</a>
+            
             <div class="dropdown">
                 <span class="dropdown-toggle">Movies <i class="fas fa-chevron-down"></i></span>
                 <div class="dropdown-menu">
@@ -36,123 +33,275 @@
                     <a href="movies.html?category=upcoming">Upcoming</a>
                 </div>
             </div>
+            
             <div class="dropdown">
                 <span class="dropdown-toggle">Genre <i class="fas fa-chevron-down"></i></span>
-                <div class="dropdown-menu" id="genre-menu">
-                    <!-- Genres will be loaded by script.js -->
-                </div>
-            </div>
-            <a href="index.html#our-productions">Productions</a>
-        </nav>
-        <div class="search-and-profile">
-            <input type="text" id="search-bar" placeholder="Search..." />
-            <div class="profile-dropdown">
-                <img id="profile-avatar" src="img/avatars/avatar1.png" alt="Profile" />
-                <div class="profile-menu">
-                    <div id="user-info" style="display: none;">
-                        <span id="user-name"></span>
-                        <span id="user-email"></span>
+                <div class="dropdown-menu multi-column">
+                    <div class="column">
+                        <a href="movies.html?genre=Action">Action</a>
+                        <a href="movies.html?genre=Adventure">Adventure</a>
+                        <a href="movies.html?genre=Animation">Animation</a>
+                        <a href="movies.html?genre=Comedy">Comedy</a>
+                        <a href="movies.html?genre=Crime">Crime</a>
                     </div>
-                    <a href="watch-history.html" id="watch-history-link">Watch History</a>
-                    <a href="#" id="theme-toggle">
-                        <i class="fas fa-sun"></i> 
-                        <span>Light Mode</span>
-                    </a>
-                    <a href="#" id="logout-btn" class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i> 
-                        <span>Logout</span>
-                    </a>
+                    <div class="column">
+                        <a href="movies.html?genre=Documentary">Documentary</a>
+                        <a href="movies.html?genre=Drama">Drama</a>
+                        <a href="movies.html?genre=Family">Family</a>
+                        <a href="movies.html?genre=Fantasy">Fantasy</a>
+                        <a href="movies.html?genre=History">History</a>
+                    </div>
+                    <div class="column">
+                        <a href="movies.html?genre=Horror">Horror</a>
+                        <a href="movies.html?genre=Music">Music</a>
+                        <a href="movies.html?genre=Mystery">Mystery</a>
+                        <a href="movies.html?genre=Romance">Romance</a>
+                        <a href="movies.html?genre=Science%20Fiction">Sci-Fi</a>
+                    </div>
+                    <div class="column">
+                        <a href="movies.html?genre=TV%20Movie">TV Movie</a>
+                        <a href="movies.html?genre=Thriller">Thriller</a>
+                        <a href="movies.html?genre=War">War</a>
+                    </div>
                 </div>
             </div>
-            <a href="login.html" id="login-btn" class="login-btn" style="display: none;">
+            
+            <a href="#our-productions">Our Production</a>
+            <a href="downloads.html">Downloads</a>
+        </nav>
+
+        <div class="nav-right">
+            <div class="search-container">
+                <input type="text" id="search-bar" placeholder="Search movies..." />
+                <i class="fas fa-search search-icon"></i>
+            </div>
+
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="theme-checkbox">
+                    <input type="checkbox" id="theme-checkbox" />
+                    <div class="slider round">
+                        <i class="fas fa-sun sun-icon"></i>
+                        <i class="fas fa-moon moon-icon"></i>
+                    </div>
+                </label>
+            </div>
+
+            <div class="profile-dropdown" id="profile-dropdown" style="display: none;">
+                <button class="profile-btn" id="profile-btn">
+                    <img src="img/avatars/avatar1.png" alt="Profile" class="profile-avatar" id="profile-avatar" />
+                    <span class="profile-name" id="profile-name">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+
+                <div class="profile-menu" id="profile-menu">
+                    <div class="profile-menu-header">
+                        <img src="img/avatars/avatar1.png" alt="Profile" class="profile-menu-avatar" id="profile-menu-avatar" />
+                        <div class="profile-menu-info">
+                            <h4 id="profile-menu-name">User Name</h4>
+                            <p id="profile-menu-email">user@email.com</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-menu-divider"></div>
+
+                    <div class="profile-menu-section">
+                        <h5>Account</h5>
+                        <button class="profile-menu-item" onclick="openAvatarSelector()">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Change Avatar</span>
+                        </button>
+                        <button class="profile-menu-item" onclick="openUploadPhoto()">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload Photo</span>
+                        </button>
+                        <button class="profile-menu-item" onclick="openWatchHistory()">
+                            <i class="fas fa-history"></i>
+                            <span>Watch History</span>
+                        </button>
+                    </div>
+
+                    <div class="profile-menu-divider"></div>
+
+                    <div class="profile-menu-section">
+                        <h5>Preferences</h5>
+                        <div class="profile-menu-item language-selector">
+                            <i class="fas fa-language"></i>
+                            <select id="language-select" onchange="changeLanguage(this.value)">
+                                <option value="en">English</option>
+                                <option value="hi">हिंदी (Hindi)</option>
+                                <option value="bn">বাংলা (Bengali)</option>
+                                <option value="ta">தமிழ் (Tamil)</option>
+                                <option value="te">తెలుగు (Telugu)</option>
+                                <option value="mr">मराठी (Marathi)</option>
+                            </select>
+                        </div>
+                        <button class="profile-menu-item" onclick="openSettings()">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </button>
+                    </div>
+
+                    <div class="profile-menu-divider"></div>
+
+                    <div class="profile-menu-section">
+                        <h5>Connect & Download</h5>
+                        <a href="https://www.facebook.com/profile.php?id=61561918005483" target="_blank" class="profile-menu-item">
+                            <i class="fab fa-facebook"></i>
+                            <span>Follow on Facebook</span>
+                            <i class="fas fa-external-link-alt external-icon"></i>
+                        </a>
+                        <a href="https://www.youtube.com/@RoyEntertainmentfilmz" target="_blank" class="profile-menu-item">
+                            <i class="fab fa-youtube"></i>
+                            <span>Subscribe on YouTube</span>
+                            <i class="fas fa-external-link-alt external-icon"></i>
+                        </a>
+                        <button class="profile-menu-item" onclick="downloadApp()">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>Download Roy Entertainment App</span>
+                        </button>
+                    </div>
+
+                    <div class="profile-menu-divider"></div>
+
+                    <button class="profile-menu-item logout-item" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Log Out</span>
+                    </button>
+                </div>
+            </div>
+
+            <a href="login.html" class="login-btn" id="login-btn">
                 <i class="fas fa-user"></i>
                 <span>Login</span>
             </a>
         </div>
     </header>
 
-    <!-- ================================================================ -->
-    <!-- 2. All BODY SECTIONS (Ready to be filled by watch.js) -->
-    <!-- ================================================================ -->
+    <nav class="breadcrumb-nav"></nav>
 
-    <!-- Breadcrumb Section -->
-    <nav class="breadcrumb-nav">
-        <!-- This will be filled by watch.js -->
-    </nav>
+    <div class="video-banner-container" id="video-banner-container">
+        <section class="watch-area-banner" id="watch-area-banner">
+            <div class="play-icon-overlay" id="play-banner-btn">
+                <i class="fas fa-play"></i>
+            </div>
+        </section>
 
-    <!-- Banner Section -->
-    <section class="watch-area-banner" id="watch-area-banner">
-        <!-- This will be filled by watch.js -->
-    </section>
-
-    <!-- Movie Details Section -->
-    <div class="movie-details-panel">
-        <!-- This will be filled by watch.js -->
-    </div>
-
-    <!-- Video Player Section -->
-    <div class="streaming-section" id="streaming-section">
-        <h2 class="player-title">Now Playing</h2>
-        <div class="player-wrapper">
-            <iframe id="movie-player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowfullscreen>
-            </iframe>
-        </div>
-    </div>
-
-    <!-- Recommendations Section -->
-    <div id="you-may-also-like-container">
-        <div class="film-grid-container">
-            <h2 class="section-title">You May Also Like</h2>
-            <div class="film-grid" id="recommendations-grid">
-                <!-- This will be filled by watch.js -->
+        <div class="streaming-section" id="streaming-section">
+            <div class="player-wrapper">
+                <iframe id="movie-player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
             </div>
         </div>
     </div>
 
-    <!-- ======================================= -->
-    <!-- 3. FULL FOOTER (From your reference)  -->
-    <!-- ======================================= -->
+    <div class="movie-details-panel"></div>
+
+    <!-- Update recommendations section to match homepage exactly -->
+    <div class="film-grid-container" id="you-may-also-like-container">
+        <h2 class="section-title">You May Also Like</h2>
+        <div class="film-grid" id="recommendations-grid">
+            <!-- Film cards will be populated here -->
+        </div>
+    </div>
+
+    <!-- Use exact same footer as homepage -->
     <footer class="main-footer">
-        <div class="footer-content">
-            <div class="footer-section about">
-                <a href="index.html" class="logo">
-                    <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
-                    <span>Roy Entertainment</span>
+        <div class="footer-logo">
+            <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
+            <span>Roy Entertainment</span>
+        </div>
+        <p>&copy; 2025 Roy Entertainment. All rights reserved.</p>
+
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="#our-productions">Our Productions</a>
+            <a href="login.html">Login</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+        </div>
+
+        <div class="follow">
+            <h4>Follow us</h4>
+            <div class="icon">
+                <a href="https://www.facebook.com/profile.php?id=61561918005483" target="_blank" title="Facebook">
+                    <i class="fab fa-facebook-f"></i>
                 </a>
-                <p>
-                    Roy Entertainment is your ultimate destination for streaming exclusive
-                    web series, movies, and short films. Experience high-quality
-                    entertainment anytime, anywhere.
-                </p>
-                <div class="social-links">
-                    <a href="https://facebook.com/royentertainment" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://instagram.com/royentertainment" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="https://www.youtube.com/@RoyEntertainmentfilmz" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+                <a href="https://www.youtube.com/@RoyEntertainmentfilmz" target="_blank" title="YouTube">
+                    <i class="fab fa-youtube"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <div id="avatar-modal" class="modal">
+        <div class="modal-content avatar-selector">
+            <div class="modal-header">
+                <h3>Choose Your Avatar</h3>
+                <button class="modal-close" onclick="closeAvatarSelector()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="avatar-grid">
+                <div class="avatar-option" onclick="selectAvatar('img/avatars/avatar1.png')">
+                    <img src="img/avatars/avatar1.png" alt="Avatar 1" />
+                </div>
+                <div class="avatar-option" onclick="selectAvatar('img/avatars/avatar2.png')">
+                    <img src="img/avatars/avatar2.png" alt="Avatar 2" />
+                </div>
+                <div class="avatar-option" onclick="selectAvatar('img/avatars/avatar3.png')">
+                    <img src="img/avatars/avatar3.png" alt="Avatar 3" />
+                </div>
+                <div class="avatar-option" onclick="selectAvatar('img/avatars/avatar4.png')">
+                    <img src="img/avatars/avatar4.png" alt="Avatar 4" />
+                </div>
+                <div class="avatar-option" onclick="selectAvatar('img/avatars/avatar5.png')">
+                    <img src="img/avatars/avatar5.png" alt="Avatar 5" />
+                </div>
+                <div class="avatar-option" onclick="selectAvatar('img/avatars/avatar6.png')">
+                    <img src="img/avatars/avatar6.png" alt="Avatar 6" />
                 </div>
             </div>
-            <div class="footer-section links">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="movies.html">Movies</a></li>
-                    <li><a href="index.html#our-productions">Productions</a></li>
-                    <li><a href="login.html">Login</a></li>
-                </ul>
+        </div>
+    </div>
+
+    <div id="upload-modal" class="modal">
+        <div class="modal-content upload-selector">
+            <div class="modal-header">
+                <h3>Upload Profile Photo</h3>
+                <button class="modal-close" onclick="closeUploadPhoto()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="footer-section links">
-                <h3>Legal</h3>
-                <ul>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Cookie Policy</a></li>
-                </ul>
+            <div class="upload-options">
+                <button class="upload-option" onclick="uploadFromGallery()">
+                    <i class="fas fa-images"></i>
+                    <span>From Gallery</span>
+                </button>
+                <button class="upload-option" onclick="uploadFromGoogleDrive()">
+                    <i class="fab fa-google-drive"></i>
+                    <span>From Google Drive</span>
+                </button>
             </div>
-            <div class="footer-section app-download">
-                <h3>Get Our App</h3>
-                <p>Download our app for an enhanced streaming experience.</p>
-                <div class="app-buttons">
+            <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)" />
+        </div>
+    </div>
+
+    <div id="app-download-modal" class="modal">
+        <div class="modal-content app-download">
+            <div class="modal-header">
+                <h3>Download Roy Entertainment App</h3>
+                <button class="modal-close" onclick="closeAppDownload()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="app-download-content">
+                <img src="img/app-icon.png" alt="App Icon" class="app-icon" />
+                <h4>Watch Anywhere, Anytime</h4>
+                <p>Download our mobile app for the best streaming experience</p>
+                <div class="download-buttons">
                     <a href="#" class="download-btn playstore">
                         <i class="fab fa-google-play"></i>
                         <div>
@@ -170,17 +319,10 @@
                 </div>
             </div>
         </div>
-    </footer>
+    </div>
 
-    <!-- ======================================= -->
-    <!-- 4. MODALS (From your reference) -->
-    <!-- ======================================= -->
-    <div id="avatar-modal" class="modal"></div>
-    <div id="upload-modal" class="modal"></div>
-    <div id="app-download-modal" class="modal"></div>
-    
     <div id="custom-confirm-modal" class="custom-modal-overlay">
-         <div class="custom-modal-content">
+        <div class="custom-modal-content">
             <p id="custom-confirm-message">Are you sure?</p>
             <div class="custom-modal-buttons">
                 <button id="custom-confirm-ok" class="btn-primary">OK</button>
@@ -189,17 +331,12 @@
         </div>
     </div>
 
-    <!-- ================================================================ -->
-    <!-- 5. CORRECT DYNAMIC SCRIPT LIST (This fixes the missing script.js) -->
-    <!-- ================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="auth-service.js" defer></script>
     <script src="theme.js" defer></script>
     <script src="profile.js" defer></script>
-    <!-- script.js IS REQUIRED for the header to work -->
-    <script src="script.js" defer></script> 
-    <!-- watch.js loads last to fill the page -->
+    <script src="script.js" defer></script>
     <script src="watch.js" defer></script>
 </body>
 </html>

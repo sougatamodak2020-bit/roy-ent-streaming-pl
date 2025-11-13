@@ -1,221 +1,458 @@
 /* ========================================
    DYNAMIC CONTENT LOADER - Roy Entertainment
-   FIXED: Removed duplicate featured cast
+   COMPLETE DATABASE INTEGRATION
 ======================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+  
+  // Wait for Supabase to be ready
+  if (!window.supabaseClient) {
+    setTimeout(() => {
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+    }, 50);
+    return;
+  }
 
-  // Inject external HTML files
-  async function inject(url, sel, pos = 'beforeend') {
+  // Helper function to truncate text
+  function truncateText(text, maxLength = 100) {
+    if (!text) return 'No description available.';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + '...';
+  }
+
+  // Helper function to format runtime
+  function formatRuntime(runtime) {
+    if (!runtime) return 'N/A';
+    return runtime;
+  }
+
+  // Load Our Productions from Database
+  async function loadOurProductions() {
+    const container = document.querySelector('#our-productions .film-grid');
+    if (!container) return;
+
     try {
-      // Check if content already exists to prevent duplicates
-      const existingContent = document.querySelector(sel + ' .featured-cast-section');
-      if (existingContent && url.includes('featured-cast')) {
-        console.log('Featured cast already loaded, skipping duplicate');
-        return;
+      // Show loading state
+      container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Loading productions...</p>';
+
+      // Fetch movies marked as our production or all movies
+      const { data: movies, error } = await supabaseClient
+        .from('movies')
+        .select('*')
+        .order('release', { ascending: false })
+        .limit(12); // Show latest 12 productions
+
+      if (error) throw error;
+
+      if (movies && movies.length > 0) {
+        container.innerHTML = movies.map(movie => {
+          const poster = movie.poster || 'https://placehold.co/380x214/1a1a1a/eee?text=No+Poster';
+          const rating = movie.rating || 0;
+          const year = movie.release || 'N/A';
+          const runtime = formatRuntime(movie.runtime);
+          const description = truncateText(movie.description, 100);
+          
+          return `
+            <article class="film-card" data-movie-id="${movie.id}">
+              <div class="rating-display">
+                <i class="fas fa-star"></i>
+                <span>${parseFloat(rating).toFixed(1)}</span>
+              </div>
+              <img src="${poster}" alt="${movie.title}" 
+                   onerror="this.onerror=null; this.src='https://placehold.co/380x214/1a1a1a/eee?text=No+Poster'" />
+              <div class="card-content">
+                <h3>${movie.title}</h3>
+                <div class="film-card-meta">
+                  <span class="rating"><i class="fas fa-star"></i> ${parseFloat(rating).toFixed(1)}</span>
+                  <span>${year}</span>
+                  <span>${runtime}</span>
+                </div>
+                <p>${description}</p>
+              </div>
+            </article>
+          `;
+        }).join('');
+
+        console.log(`✅ Loaded ${movies.length} productions from database`);
+      } else {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No productions available.</p>';
       }
+    } catch (error) {
+      console.error('Error loading productions:', error);
+      container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Failed to load productions.</p>';
+    }
+  }
+
+  // Load Continue Watching (with database integration)
+  async function loadContinueWatching() {
+    const grid = document.getElementById('continue-watching-grid');
+    const section = document.querySelector('.continue-watching-section');
+    
+    if (!grid || !section) return;
+
+    // Check if user is logged in
+    if (!window.authService || !window.authService.isLoggedIn()) {
+      return; // Don't show continue watching if not logged in
+    }
+
+    try {
+      const user = window.authService.getCurrentUser();
       
-      let r = await fetch(url);
-      if (r.ok) {
-        const html = await r.text();
-        const target = document.querySelector(sel);
-        if (target) {
-          // For featured-cast, check if it's already inserted
-          if (url.includes('featured-cast') && document.querySelector('.featured-cast-section')) {
-            console.log('Featured cast section already exists');
-            return;
-          }
-          target.insertAdjacentHTML(pos, html);
+      // Fetch watch history from database
+      const { data: watchHistory, error: historyError } = await supabaseClient
+        .from('watch_history')
+        .select('movie_id, progress, watched_at')
+        .eq('user_id', user.id)
+        .order('watched_at', { ascending: false })
+        .limit(6);
+
+      if (historyError) throw historyError;
+
+      if (watchHistory && watchHistory.length > 0) {
+        // Get movie details for each watch history item
+        const movieIds = watchHistory.map(item => item.movie_id);
+        
+        const { data: movies, error: moviesError } = await supabaseClient
+          .from('movies')
+          .select('*')
+          .in('id', movieIds);
+
+        if (moviesError) throw moviesError;
+
+        // Create a map for quick lookup
+        const moviesMap = {};
+        movies.forEach(movie => {
+          moviesMap[movie.id] = movie;
+        });
+
+        // Build the continue watching cards
+        const cards = watchHistory.map(item => {
+          const movie = moviesMap[item.movie_id];
+          if (!movie) return '';
+
+          const poster = movie.poster || 'https://placehold.co/320x180/1a1a1a/eee?text=No+Poster';
+          const progress = item.progress || 0;
+          
+          return `
+            <article class="film-card" data-movie-id="${movie.id}">
+              <img src="${poster}" alt="${movie.title}"
+                   onerror="this.onerror=null; this.src='https://placehold.co/320x180/1a1a1a/eee?text=No+Poster'" />
+              <div class="card-content">
+                <h3>${movie.title}</h3>
+                <p>Continue watching...</p>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar" style="width:${progress}%"></div>
+              </div>
+            </article>
+          `;
+        }).filter(card => card !== '').join('');
+
+        if (cards) {
+          grid.innerHTML = cards;
+          section.classList.add('visible');
         }
       }
     } catch (error) {
-      console.error(`Error loading ${url}:`, error);
+      console.log('Continue watching not loaded:', error.message);
     }
   }
 
-  // Setup search functionality
-  function setupSearch() {
-    let bar = document.getElementById('search-bar');
-    let grids = document.querySelectorAll('.film-grid');
-    
-    if (!bar) return;
-    
-    bar.addEventListener('input', e => {
-      let v = e.target.value.toLowerCase();
-      grids.forEach(g => {
-        g.querySelectorAll('.film-card').forEach(c => {
-          const title = c.querySelector('h3');
-          if (title) {
-            c.style.display = title.textContent.toLowerCase().includes(v) ? 'block' : 'none';
-          }
+  // Load Latest Movies for Hero Slider
+  async function loadHeroSlides() {
+    const slider = document.querySelector('.hero-slider');
+    if (!slider) return;
+
+    try {
+      // Fetch featured/latest movies for the hero slider
+      const { data: movies, error } = await supabaseClient
+        .from('movies')
+        .select('*')
+        .order('release', { ascending: false })
+        .limit(5); // Show 5 latest movies in slider
+
+      if (error) throw error;
+
+      if (movies && movies.length > 0) {
+        // Clear existing slides except the gradient overlay
+        const overlay = slider.querySelector('.hero-gradient-overlay');
+        slider.innerHTML = '';
+        
+        // Add slides
+        movies.forEach(movie => {
+          const backdrop = movie.banner || movie.poster || 'https://placehold.co/1920x1080/1a1a1a/eee?text=No+Image';
+          const rating = movie.rating || 0;
+          const year = movie.release || 'N/A';
+          const runtime = formatRuntime(movie.runtime);
+          
+          const slide = document.createElement('div');
+          slide.className = 'slide';
+          slide.style.backgroundImage = `url('${backdrop}')`;
+          slide.dataset.movieId = movie.id;
+          slide.innerHTML = `
+            <div class="slide-content">
+              <h2>${movie.title}</h2>
+              <div class="slide-metadata">
+                <span class="slide-rating"><i class="fas fa-star"></i> ${parseFloat(rating).toFixed(1)}</span>
+                <span class="slide-separator">|</span>
+                <span>${year}</span>
+                <span class="slide-separator">|</span>
+                <span>${runtime}</span>
+              </div>
+              <a href="watch.html?movie=${movie.id}" class="btn-primary">Watch Now</a>
+            </div>
+          `;
+          slider.appendChild(slide);
         });
-      });
+
+        // Re-add gradient overlay
+        if (overlay) {
+          slider.appendChild(overlay);
+        } else {
+          slider.innerHTML += '<div class="hero-gradient-overlay"></div>';
+        }
+
+        // Re-initialize hero slider
+        setupHeroSlider();
+        console.log(`✅ Loaded ${movies.length} movies in hero slider`);
+      }
+    } catch (error) {
+      console.error('Error loading hero slides:', error);
+    }
+  }
+
+  // Setup hero slider functionality
+  function setupHeroSlider() {
+    const slider = document.querySelector('.hero-slider');
+    if (!slider) return;
+    
+    const slides = [...slider.children].filter(el => el.classList.contains('slide'));
+    const dotsContainer = document.getElementById('slider-dots');
+    let currentIndex = 0;
+    let autoScrollInterval;
+    
+    if (!dotsContainer || slides.length === 0) return;
+    
+    // Clear and create dots
+    dotsContainer.innerHTML = '';
+    
+    slides.forEach((slide, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot';
+      dot.dataset.index = i;
+      dot.onclick = () => { 
+        clearInterval(autoScrollInterval); 
+        currentIndex = i; 
+        scrollToSlide(); 
+        startAutoScroll(); 
+      };
+      dotsContainer.appendChild(dot);
     });
     
-    let q = new URLSearchParams(location.search).get('search');
-    if (q) { 
-      bar.value = q; 
-      bar.dispatchEvent(new Event('input')); 
-    }
-  }
-
-  // Load continue watching
-  function loadContinue() {
-    let data = JSON.parse(localStorage.getItem('watchProgress') || '{}');
-    let db = { 
-      'asur': ['Asur', 'img/movie-banner-1.png'], 
-      'lazy-assassin': ['Lazy Assassin', 'img/movie-banner-2.webp'], 
-      'rudrapur': ['Rudrapur', 'img/movie-banner-3.png'],
-      'predictor': ['Predictor', 'img/movie-banner-4.jpg'],
-      'niladri': ['Niladri', 'img/movie-banner-5.webp'],
-      'celcius': ['Celcius', 'img/movie-banner-6.jpg'],
-      '12-am': ['12 AM', 'img/movie-banner-7.png']
+    const dots = [...dotsContainer.children];
+    
+    const updateDots = () => { 
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
     };
     
-    let grid = document.getElementById('continue-watching-grid');
-    let sec = document.querySelector('.continue-watching-section');
+    const scrollToSlide = () => slider.scrollTo({ 
+      left: currentIndex * slider.clientWidth, 
+      behavior: 'smooth' 
+    });
     
-    if (!grid) return;
+    const startAutoScroll = () => {
+      clearInterval(autoScrollInterval); 
+      autoScrollInterval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % slides.length; 
+        scrollToSlide(); 
+        updateDots();
+      }, 5000);
+    };
     
-    Object.entries(data).sort((a, b) => b[1].timestamp - a[1].timestamp)
-      .forEach(([id, v]) => {
-        let m = db[id]; 
-        if (!m) return;
-        let pct = v.currentTime / v.duration * 100;
-        grid.insertAdjacentHTML('beforeend', `
-          <article class="film-card" data-movie-id="${id}">
-            <img src="${m[1]}" alt="${m[0]}"/>
-            <div class="card-content">
-              <h3>${m[0]}</h3>
-              <p>Continue watching...</p>
-            </div>
-            <div class="progress-bar-container">
-              <div class="progress-bar" style="width:${pct}%"></div>
-            </div>
-          </article>`);
-      });
+    // Setup intersection observer for dot sync
+    slides.forEach(slide => {
+      new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            currentIndex = slides.indexOf(entry.target);
+            updateDots();
+          }
+        });
+      }, { root: slider, threshold: 0.51 }).observe(slide);
+    });
     
-    if (grid.children.length && sec) {
-      sec.classList.add('visible');
-    }
+    slider.addEventListener('mouseenter', () => clearInterval(autoScrollInterval));
+    slider.addEventListener('mouseleave', startAutoScroll);
+    window.addEventListener('resize', scrollToSlide);
+    
+    startAutoScroll(); 
+    updateDots();
   }
 
-  // Show ratings
-  function showRatings() {
-    let R = JSON.parse(localStorage.getItem('movieRatings') || '{}');
-    document.querySelectorAll('.film-card').forEach(c => {
-      let r = R[c.dataset.movieId];
-      if (r) {
-        let d = c.querySelector('.rating-display');
-        if (d) {
-          d.innerHTML = `<i class="fas fa-star"></i><span>${r}.0</span>`;
-          d.classList.add('visible');
+  // Enhanced search with database
+  async function setupDatabaseSearch() {
+    const searchBar = document.getElementById('search-bar');
+    if (!searchBar) return;
+
+    let searchTimeout;
+    
+    searchBar.addEventListener('input', async (e) => {
+      const searchTerm = e.target.value.toLowerCase().trim();
+      
+      // Clear previous timeout
+      clearTimeout(searchTimeout);
+      
+      if (searchTerm.length < 2) {
+        // Reset view if search is cleared
+        if (searchTerm.length === 0) {
+          await loadOurProductions();
         }
+        return;
+      }
+      
+      // Debounce search
+      searchTimeout = setTimeout(async () => {
+        try {
+          // Search in database
+          const { data: movies, error } = await supabaseClient
+            .from('movies')
+            .select('*')
+            .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,actors.ilike.%${searchTerm}%,director.ilike.%${searchTerm}%`)
+            .limit(20);
+
+          if (error) throw error;
+
+          // Update the film grid with search results
+          const container = document.querySelector('#our-productions .film-grid');
+          if (container && movies) {
+            if (movies.length > 0) {
+              container.innerHTML = movies.map(movie => {
+                const poster = movie.poster || 'https://placehold.co/380x214/1a1a1a/eee?text=No+Poster';
+                const rating = movie.rating || 0;
+                const year = movie.release || 'N/A';
+                const runtime = formatRuntime(movie.runtime);
+                const description = truncateText(movie.description, 100);
+                
+                return `
+                  <article class="film-card" data-movie-id="${movie.id}">
+                    <div class="rating-display">
+                      <i class="fas fa-star"></i>
+                      <span>${parseFloat(rating).toFixed(1)}</span>
+                    </div>
+                    <img src="${poster}" alt="${movie.title}" 
+                         onerror="this.onerror=null; this.src='https://placehold.co/380x214/1a1a1a/eee?text=No+Poster'" />
+                    <div class="card-content">
+                      <h3>${movie.title}</h3>
+                      <div class="film-card-meta">
+                        <span class="rating"><i class="fas fa-star"></i> ${parseFloat(rating).toFixed(1)}</span>
+                        <span>${year}</span>
+                        <span>${runtime}</span>
+                      </div>
+                      <p>${description}</p>
+                    </div>
+                  </article>
+                `;
+              }).join('');
+            } else {
+              container.innerHTML = `<p style="text-align: center; grid-column: 1/-1; color: var(--text-secondary);">No movies found for "${searchTerm}"</p>`;
+            }
+          }
+        } catch (error) {
+          console.error('Search error:', error);
+        }
+      }, 300); // 300ms debounce
+    });
+
+    // Handle Enter key for navigation
+    searchBar.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && e.target.value.trim()) {
+        window.location.href = `movies.html?search=${encodeURIComponent(e.target.value)}`;
       }
     });
   }
 
-  // Setup hero slider
-  function setupHero() {
-    let s = document.querySelector('.hero-slider');
-    if (!s) return;
-    
-    let slides = [...s.children].filter(el => el.classList.contains('slide'));
-    let dots = document.getElementById('slider-dots');
-    let idx = 0;
-    let iv;
-    
-    if (!dots || slides.length === 0) return;
-    
-    dots.innerHTML = '';
-    
-    slides.forEach((sl, i) => {
-      let b = document.createElement('button');
-      b.className = 'dot';
-      b.dataset.index = i;
-      b.onclick = () => { 
-        clearInterval(iv); 
-        idx = i; 
-        scroll(); 
-        start(); 
-      };
-      dots.append(b);
-    });
-    
-    let ds = [...dots.children];
-    
-    const update = () => { 
-      ds.forEach((d, i) => d.classList.toggle('active', i === idx));
-    };
-    
-    const scroll = () => s.scrollTo({ 
-      left: idx * s.clientWidth, 
-      behavior: 'smooth' 
-    });
-    
-    const start = () => {
-      clearInterval(iv); 
-      iv = setInterval(() => {
-        idx = (idx + 1) % slides.length; 
-        scroll(); 
-        update();
-      }, 5000);
-    };
-    
-    // Intersection Observer for dot sync
-    slides.forEach(sl => {
-      new IntersectionObserver(entries => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            idx = slides.indexOf(e.target);
-            update();
-          }
-        });
-      }, { root: s, threshold: 0.51 }).observe(sl);
-    });
-    
-    s.addEventListener('mouseenter', () => clearInterval(iv));
-    s.addEventListener('mouseleave', start);
-    window.addEventListener('resize', scroll);
-    
-    start(); 
-    update();
+  // Inject external HTML files
+  async function inject(url, selector, position = 'beforeend') {
+    try {
+      // Skip featured cast injection since we're using database
+      if (url.includes('featured-cast')) {
+        return;
+      }
+      
+      // Only inject continue-watching container
+      if (url.includes('continue-watching')) {
+        const existingContent = document.querySelector('.continue-watching-section');
+        if (existingContent) {
+          console.log('Continue watching section already exists');
+          return;
+        }
+        
+        const target = document.querySelector(selector);
+        if (target) {
+          target.insertAdjacentHTML(position, `
+            <div id="continue-watching-container">
+              <section class="continue-watching-section">
+                <h2 class="section-title">Continue Watching</h2>
+                <div class="film-grid" id="continue-watching-grid"></div>
+              </section>
+            </div>
+          `);
+        }
+      }
+    } catch (error) {
+      console.error(`Error injecting ${url}:`, error);
+    }
   }
 
   // Click handler for movie cards
-  document.body.addEventListener('click', e => {
-    let c = e.target.closest('[data-movie-id]');
-    if (c) { 
+  document.body.addEventListener('click', (e) => {
+    const card = e.target.closest('[data-movie-id]');
+    if (card && !e.target.closest('.btn-primary')) { 
       e.preventDefault(); 
-      location.href = `watch.html?movie=${c.dataset.movieId}`; 
+      const movieId = card.dataset.movieId;
+      
+      // Check login status
+      if (window.authService && !window.authService.isLoggedIn()) {
+        if (window.showLoginRequired) {
+          window.showLoginRequired(movieId);
+        } else {
+          window.location.href = `login.html?redirect=watch.html?movie=${movieId}`;
+        }
+      } else {
+        window.location.href = `watch.html?movie=${movieId}`; 
+      }
     }
   });
 
-  // Hide preloader
-  window.onload = () => {
-    const preloader = document.getElementById('preloader');
-    if (preloader) {
-      preloader.style.opacity = '0';
-      setTimeout(() => {
-        preloader.style.display = 'none';
-        document.body.classList.remove('hidden');
-      }, 300);
-    }
-  };
-
   // Initialize everything
   (async () => {
-    // Inject continue watching and featured cast (only once)
-    await inject('continue-watching.html', '#our-productions', 'beforebegin');
-    
-    // Only inject featured cast if it doesn't exist
-    if (!document.querySelector('.featured-cast-section')) {
-      await inject('featured-cast.html', 'main.film-grid-container', 'afterend');
+    try {
+      // Inject continue watching container
+      await inject('continue-watching.html', '#our-productions', 'beforebegin');
+      
+      // Load all dynamic content from database
+      await Promise.all([
+        loadHeroSlides(),
+        loadOurProductions(),
+        loadContinueWatching()
+      ]);
+      
+      // Setup search functionality
+      setupDatabaseSearch();
+      
+      console.log('✅ All dynamic content loaded successfully');
+    } catch (error) {
+      console.error('Error initializing dynamic content:', error);
+    } finally {
+      // Hide preloader
+      const preloader = document.getElementById('preloader');
+      if (preloader) {
+        preloader.style.opacity = '0';
+        setTimeout(() => {
+          preloader.style.display = 'none';
+          document.body.classList.remove('hidden');
+        }, 300);
+      }
     }
-    
-    loadContinue(); 
-    setupHero(); 
-    showRatings(); 
-    setupSearch();
   })();
 });

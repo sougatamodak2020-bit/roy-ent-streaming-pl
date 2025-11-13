@@ -2,10 +2,12 @@
 <html lang="en" data-theme="dark">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Movies - Roy Entertainment</title>
-    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="movies-enhanced.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 
@@ -14,6 +16,7 @@
         <div class="spinner"></div>
     </div>
 
+    <!-- Header (Same as index.html) -->
     <header class="main-header">
         <a href="index.html" class="logo">
             <img src="img/logo.jpg" alt="Roy Entertainment Logo" />
@@ -21,27 +24,33 @@
         </a>
         <nav class="main-nav">
             <a href="index.html">Home</a>
+            
             <div class="dropdown">
-                <span class="dropdown-toggle">Movies <i class="fas fa-chevron-down"></i></span>
+                <span class="dropdown-toggle active">Movies <i class="fas fa-chevron-down"></i></span>
                 <div class="dropdown-menu">
                     <a href="movies.html?category=latest">Latest</a>
                     <a href="movies.html?category=popular">Popular</a>
                     <a href="movies.html?category=upcoming">Upcoming</a>
                 </div>
             </div>
+            
             <div class="dropdown">
                 <span class="dropdown-toggle">Genre <i class="fas fa-chevron-down"></i></span>
-                <div class="dropdown-menu multi-column">
-                    </div>
+                <div class="dropdown-menu multi-column" id="genre-menu-nav">
+                    <!-- Will be populated by JS -->
+                </div>
             </div>
+            
             <a href="index.html#our-productions">Our Production</a>
             <a href="downloads.html">Downloads</a>
         </nav>
+
         <div class="nav-right">
             <div class="search-container">
-                <input type="text" id="search-bar" placeholder="Search movies…" />
+                <input type="text" id="search-bar" placeholder="Search movies..." />
                 <i class="fas fa-search search-icon"></i>
             </div>
+            
             <div class="theme-switch-wrapper">
                 <label class="theme-switch" for="theme-checkbox">
                     <input type="checkbox" id="theme-checkbox" />
@@ -51,8 +60,11 @@
                     </div>
                 </label>
             </div>
+            
             <div class="profile-dropdown" id="profile-dropdown" style="display: none;">
-                </div>
+                <!-- Profile content same as index.html -->
+            </div>
+            
             <a href="login.html" class="login-btn" id="login-btn">
                 <i class="fas fa-user"></i>
                 <span>Login</span>
@@ -60,42 +72,166 @@
         </div>
     </header>
 
-    <main class="film-grid-container" style="padding-top: 100px;">
-        <h2 class="section-title" id="movie-category-title">Latest Movies</h2>
-        <div class="movie-grid" id="movie-grid">
+    <!-- Movies Hero Section -->
+    <section class="movies-hero">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-main">Discover Amazing Movies</span>
+                <span class="title-sub">Stream Unlimited Entertainment</span>
+            </h1>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number" id="total-movies">0</span>
+                    <span class="stat-label">Movies</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">4K</span>
+                    <span class="stat-label">Quality</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Streaming</span>
+                </div>
             </div>
-    </main>
+        </div>
+    </section>
 
-    <footer class="main-footer">
-        </footer>
+    <!-- Filter Section -->
+    <section class="filter-section">
+        <div class="filter-container">
+            <!-- Search Bar -->
+            <div class="filter-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="movie-search" placeholder="Search movies, actors, directors..." />
+            </div>
 
-    <div id="avatar-modal" class="modal">
-        </div>
-    <div id="upload-modal" class="modal">
-        </div>
-    <div id="app-download-modal" class="modal">
-        </div>
-    <div id="custom-confirm-modal" class="custom-modal-overlay">
-         <div class="custom-modal-content">
-            <p id="custom-confirm-message">Are you sure?</p>
-            <div class="custom-modal-buttons">
-                <button id="custom-confirm-ok" class="btn-primary">OK</button>
-                <button id="custom-confirm-cancel" class="btn-secondary">Cancel</button>
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <!-- Category Filter -->
+                <div class="filter-group">
+                    <label>Category</label>
+                    <select id="category-filter">
+                        <option value="all">All Movies</option>
+                        <option value="latest">Latest</option>
+                        <option value="popular">Popular</option>
+                        <option value="upcoming">Upcoming</option>
+                    </select>
+                </div>
+
+                <!-- Genre Filter -->
+                <div class="filter-group">
+                    <label>Genre</label>
+                    <select id="genre-filter">
+                        <option value="all">All Genres</option>
+                        <!-- Will be populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Year Filter -->
+                <div class="filter-group">
+                    <label>Year</label>
+                    <select id="year-filter">
+                        <option value="all">All Years</option>
+                        <!-- Will be populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Rating Filter -->
+                <div class="filter-group">
+                    <label>Rating</label>
+                    <select id="rating-filter">
+                        <option value="all">All Ratings</option>
+                        <option value="9">9+ ⭐</option>
+                        <option value="8">8+ ⭐</option>
+                        <option value="7">7+ ⭐</option>
+                        <option value="6">6+ ⭐</option>
+                    </select>
+                </div>
+
+                <!-- Sort Options -->
+                <div class="filter-group">
+                    <label>Sort By</label>
+                    <select id="sort-filter">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="rating-high">Highest Rated</option>
+                        <option value="rating-low">Lowest Rated</option>
+                        <option value="title-az">Title (A-Z)</option>
+                        <option value="title-za">Title (Z-A)</option>
+                    </select>
+                </div>
+
+                <!-- View Mode -->
+                <div class="view-modes">
+                    <button class="view-mode active" data-view="grid">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-mode" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Filters Display -->
+            <div class="active-filters" id="active-filters">
+                <!-- Will be populated by JS -->
             </div>
         </div>
+    </section>
+
+    <!-- Results Info -->
+    <div class="results-info">
+        <div class="results-count">
+            Showing <span id="results-count">0</span> movies
+        </div>
+        <button id="clear-filters" class="clear-filters-btn" style="display: none;">
+            <i class="fas fa-times"></i> Clear All Filters
+        </button>
     </div>
 
+    <!-- Movies Grid -->
+    <main class="movies-container">
+        <div class="movie-grid" id="movie-grid">
+            <!-- Movies will be loaded here -->
+        </div>
+        
+        <!-- No Results Message -->
+        <div class="no-results" id="no-results" style="display: none;">
+            <i class="fas fa-film"></i>
+            <h3>No Movies Found</h3>
+            <p>Try adjusting your filters or search terms</p>
+        </div>
+        
+        <!-- Loading State -->
+        <div class="loading-state" id="loading-state">
+            <div class="movie-skeleton"></div>
+            <div class="movie-skeleton"></div>
+            <div class="movie-skeleton"></div>
+            <div class="movie-skeleton"></div>
+            <div class="movie-skeleton"></div>
+            <div class="movie-skeleton"></div>
+        </div>
+    </main>
+
+    <!-- Load More -->
+    <div class="load-more-container">
+        <button id="load-more" class="load-more-btn">
+            <i class="fas fa-plus"></i> Load More Movies
+        </button>
+    </div>
+
+    <!-- Footer (Same as index.html) -->
+    <footer class="main-footer">
+        <!-- Footer content same as index.html -->
+    </footer>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-
     <script src="supabase-config.js"></script>
-
     <script src="auth-service.js" defer></script>
     <script src="theme.js" defer></script>
     <script src="profile.js" defer></script>
-    <script src="script.js" defer></script>
-    <script src="dynamic-loader.js" defer></script>
-
     <script src="movies.js" defer></script>
-
 </body>
 </html>
