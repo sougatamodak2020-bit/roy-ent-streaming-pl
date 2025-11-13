@@ -1,6 +1,6 @@
 // ========================================
-// SUPABASE AUTHENTICATION SERVICE
-// Roy Entertainment - Production Ready
+// SUPABASE AUTHENTICATION SERVICE - FIXED
+// Roy Entertainment
 // ========================================
 
 class AuthService {
@@ -8,20 +8,49 @@ class AuthService {
         this.currentUser = null;
         this.userProfile = null;
         this.sessionCheckInterval = null;
-        this.initializeAuth();
+        this.initialized = false;
+        
+        // Don't initialize immediately, wait for Supabase
+        this.waitForSupabase();
+    }
+
+    // Wait for Supabase to be ready
+    async waitForSupabase() {
+        let attempts = 0;
+        const maxAttempts = 100; // 10 seconds max
+        
+        while (!window.supabaseClient && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        if (!window.supabaseClient) {
+            console.error('❌ Supabase client not available after 10 seconds');
+            return;
+        }
+        
+        console.log('🔐 Auth service found Supabase client, initializing...');
+        await this.initializeAuth();
     }
 
     // Initialize authentication state listener
     async initializeAuth() {
         try {
+            // Check if supabaseClient and its auth property exist
+            if (!window.supabaseClient || !window.supabaseClient.auth) {
+                console.error('Supabase auth not available');
+                return;
+            }
+
             // Handle OAuth callback if present
             await this.handleOAuthCallback();
             
-            // Get initial session - FIX: Use supabaseClient
-            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            // Get initial session
+            const { data: { session }, error } = await window.supabaseClient.auth.getSession();
             
             if (error) {
                 console.error('Session error:', error);
+                this.updateUIForLoggedOutUser();
                 return;
             }
             
@@ -29,12 +58,14 @@ class AuthService {
                 this.currentUser = session.user;
                 await this.loadUserProfile();
                 this.updateUIForLoggedInUser();
+                console.log('User already logged in:', this.currentUser.email);
             } else {
                 this.updateUIForLoggedOutUser();
+                console.log('No active session');
             }
 
-            // Listen for auth state changes - FIX: Use supabaseClient
-            supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            // Listen for auth state changes
+            window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 console.log('Auth event:', event);
                 
                 switch (event) {
@@ -65,25 +96,25 @@ class AuthService {
 
             // Setup session refresh check
             this.setupSessionCheck();
+            this.initialized = true;
+            console.log('🔐 Supabase Auth Service Ready');
             
         } catch (error) {
             console.error('Auth initialization error:', error);
+            this.updateUIForLoggedOutUser();
         }
     }
 
     // Handle OAuth callback
     async handleOAuthCallback() {
-        // Check if we're returning from an OAuth flow
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const searchParams = new URLSearchParams(window.location.search);
         
         if (hashParams.get('access_token') || searchParams.get('code')) {
             try {
-                // Clean up URL
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
-                // Get session - FIX: Use supabaseClient
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                const { data: { session }, error } = await window.supabaseClient.auth.getSession();
                 
                 if (error) throw error;
                 
@@ -102,17 +133,16 @@ class AuthService {
 
     // Setup periodic session check
     setupSessionCheck() {
-        // Check session every 30 seconds
         this.sessionCheckInterval = setInterval(async () => {
-            // FIX: Use supabaseClient
-            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (!window.supabaseClient) return;
+            
+            const { data: { session }, error } = await window.supabaseClient.auth.getSession();
             
             if (error) {
                 console.error('Session check error:', error);
                 return;
             }
             
-            // Update current user if session changed
             if (session?.user?.id !== this.currentUser?.id) {
                 if (session) {
                     this.currentUser = session.user;
@@ -129,18 +159,16 @@ class AuthService {
 
     // Load user profile from database
     async loadUserProfile() {
-        if (!this.currentUser) return;
+        if (!this.currentUser || !window.supabaseClient) return;
 
         try {
-            // FIX: Use supabaseClient
-            let { data, error } = await supabaseClient
+            let { data, error } = await window.supabaseClient
                 .from('profiles')
                 .select('*')
                 .eq('id', this.currentUser.id)
                 .single();
 
             if (error && error.code === 'PGRST116') {
-                // Profile doesn't exist, create it
                 await this.createUserProfile();
                 return;
             }
@@ -158,7 +186,7 @@ class AuthService {
 
     // Create user profile
     async createUserProfile() {
-        if (!this.currentUser) return;
+        if (!this.currentUser || !window.supabaseClient) return;
 
         const metadata = this.currentUser.user_metadata || {};
         
@@ -172,8 +200,7 @@ class AuthService {
         };
 
         try {
-            // FIX: Use supabaseClient
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.supabaseClient
                 .from('profiles')
                 .insert([profile])
                 .select()
@@ -190,15 +217,10 @@ class AuthService {
 
     // Sign up with email
     async signUpWithEmail(email, password, name) {
-        try {
-            // Check if email already exists - FIX: Use supabaseClient
-            const { data: existingUser } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: 'dummy_check_password'
-            });
+        if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
 
-            // FIX: Use supabaseClient
-            const { data, error } = await supabaseClient.auth.signUp({
+        try {
+            const { data, error } = await window.supabaseClient.auth.signUp({
                 email: email,
                 password: password,
                 options: {
@@ -218,7 +240,6 @@ class AuthService {
                 throw error;
             }
 
-            // Check if email confirmation is required
             if (data?.user?.identities?.length === 0) {
                 return {
                     success: true,
@@ -243,19 +264,18 @@ class AuthService {
 
     // Sign in with email
     async signInWithEmail(email, password) {
+        if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
+
         try {
-            // FIX: Use supabaseClient
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
+            const { data, error } = await window.supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password
             });
 
             if (error) throw error;
 
-            // Update last login in profile
             if (data.user) {
-                // FIX: Use supabaseClient
-                await supabaseClient
+                await window.supabaseClient
                     .from('profiles')
                     .update({ last_login: new Date().toISOString() })
                     .eq('id', data.user.id);
@@ -276,9 +296,10 @@ class AuthService {
 
     // Sign in with Google
     async signInWithGoogle() {
+        if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
+
         try {
-            // FIX: Use supabaseClient
-            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: window.location.origin,
@@ -290,8 +311,6 @@ class AuthService {
             });
 
             if (error) throw error;
-
-            // The browser will redirect to Google
             return { success: true };
         } catch (error) {
             console.error('Google sign-in error:', error);
@@ -302,342 +321,14 @@ class AuthService {
         }
     }
 
-    // Sign in with GitHub
-    async signInWithGitHub() {
-        try {
-            // FIX: Use supabaseClient
-            const { data, error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'github',
-                options: {
-                    redirectTo: window.location.origin,
-                    scopes: 'read:user user:email'
-                }
-            });
-
-            if (error) throw error;
-
-            return { success: true };
-        } catch (error) {
-            return {
-                success: false,
-                error: this.getErrorMessage(error)
-            };
-        }
-    }
-
-    // Sign in with Facebook
-    async signInWithFacebook() {
-        try {
-            // FIX: Use supabaseClient
-            const { data, error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'facebook',
-                options: {
-                    redirectTo: window.location.origin,
-                    scopes: 'email public_profile'
-                }
-            });
-
-            if (error) throw error;
-
-            return { success: true };
-        } catch (error) {
-            return {
-                success: false,
-                error: this.getErrorMessage(error)
-            };
-        }
-    }
-
-    // Reset password
-    async resetPassword(email) {
-        try {
-            // FIX: Use supabaseClient
-            const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/reset-password.html`
-            });
-
-            if (error) throw error;
-
-            return {
-                success: true,
-                message: 'Password reset email sent! Please check your inbox.'
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: this.getErrorMessage(error)
-            };
-        }
-    }
-
-    // Update password
-    async updatePassword(newPassword) {
-        try {
-            // FIX: Use supabaseClient
-            const { error } = await supabaseClient.auth.updateUser({
-                password: newPassword
-            });
-
-            if (error) throw error;
-
-            return {
-                success: true,
-                message: 'Password updated successfully!'
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: this.getErrorMessage(error)
-            };
-        }
-    }
-
-    // Update profile
-    async updateProfile(updates) {
-        if (!this.currentUser) return { success: false, error: 'Not authenticated' };
-
-        try {
-            // Update user metadata if name or avatar changed
-            if (updates.name || updates.avatar) {
-                // FIX: Use supabaseClient
-                const { error: authError } = await supabaseClient.auth.updateUser({
-                    data: {
-                        name: updates.name || this.userProfile?.name,
-                        full_name: updates.name || this.userProfile?.name,
-                        avatar_url: updates.avatar || this.userProfile?.avatar
-                    }
-                });
-                
-                if (authError) throw authError;
-            }
-
-            // Update profile in database - FIX: Use supabaseClient
-            const { data, error } = await supabaseClient
-                .from('profiles')
-                .update({
-                    ...updates,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', this.currentUser.id)
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            this.userProfile = data;
-            this.updateUIForLoggedInUser();
-
-            return { success: true };
-        } catch (error) {
-            console.error('Profile update error:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    // Upload profile picture
-    async uploadProfilePicture(file) {
-        if (!this.currentUser) return { success: false, error: 'Not authenticated' };
-
-        try {
-            // Validate file
-            if (!file.type.startsWith('image/')) {
-                throw new Error('Please select an image file');
-            }
-
-            if (file.size > 5 * 1024 * 1024) {
-                throw new Error('Image size must be less than 5MB');
-            }
-
-            // Show upload progress
-            this.showNotification('Uploading photo...', 'info');
-
-            // Generate unique filename
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${this.currentUser.id}/${Date.now()}.${fileExt}`;
-            
-            // First, create the bucket if it doesn't exist - FIX: Use supabaseClient
-            const { data: buckets } = await supabaseClient.storage.listBuckets();
-            const profilesBucket = buckets?.find(b => b.name === 'profiles');
-            
-            if (!profilesBucket) {
-                // FIX: Use supabaseClient
-                await supabaseClient.storage.createBucket('profiles', {
-                    public: true,
-                    fileSizeLimit: 5242880 // 5MB
-                });
-            }
-
-            // Upload to Supabase Storage - FIX: Use supabaseClient
-            const { data, error } = await supabaseClient.storage
-                .from('profiles')
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: true
-                });
-
-            if (error) throw error;
-
-            // Get public URL - FIX: Use supabaseClient
-            const { data: { publicUrl } } = supabaseClient.storage
-                .from('profiles')
-                .getPublicUrl(fileName);
-
-            // Update profile with new avatar URL
-            await this.updateProfile({ avatar: publicUrl });
-
-            this.showNotification('Photo uploaded successfully!', 'success');
-
-            return {
-                success: true,
-                url: publicUrl
-            };
-        } catch (error) {
-            console.error('Upload error:', error);
-            this.showNotification('Upload failed: ' + error.message, 'error');
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    // Save watch history
-    async saveWatchHistory(movieId, currentTime, duration) {
-        if (!this.currentUser) return;
-
-        try {
-            const progress = (currentTime / duration) * 100;
-            
-            // FIX: Use supabaseClient
-            const { error } = await supabaseClient
-                .from('watch_history')
-                .upsert({
-                    user_id: this.currentUser.id,
-                    movie_id: movieId,
-                    current_time: currentTime,
-                    duration: duration,
-                    progress: progress,
-                    timestamp: new Date().toISOString()
-                }, {
-                    onConflict: 'user_id,movie_id'
-                });
-
-            if (error) throw error;
-
-            return { success: true };
-        } catch (error) {
-            console.error('Error saving watch history:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Get watch history
-    async getWatchHistory() {
-        if (!this.currentUser) return [];
-
-        try {
-            // FIX: Use supabaseClient
-            const { data, error } = await supabaseClient
-                .from('watch_history')
-                .select('*')
-                .eq('user_id', this.currentUser.id)
-                .order('timestamp', { ascending: false })
-                .limit(20);
-
-            if (error) throw error;
-
-            return data || [];
-        } catch (error) {
-            console.error('Error getting watch history:', error);
-            return [];
-        }
-    }
-
-    // Add to favorites
-    async addToFavorites(movieId) {
-        if (!this.currentUser) {
-            this.showNotification('Please login to add favorites', 'error');
-            return;
-        }
-
-        try {
-            // Get current favorites - FIX: Use supabaseClient
-            const { data: profile } = await supabaseClient
-                .from('profiles')
-                .select('favorites')
-                .eq('id', this.currentUser.id)
-                .single();
-
-            const currentFavorites = profile?.favorites || [];
-            
-            if (currentFavorites.includes(movieId)) {
-                this.showNotification('Already in favorites', 'info');
-                return;
-            }
-
-            // Add to favorites - FIX: Use supabaseClient
-            const { error } = await supabaseClient
-                .from('profiles')
-                .update({
-                    favorites: [...currentFavorites, movieId]
-                })
-                .eq('id', this.currentUser.id);
-
-            if (error) throw error;
-
-            this.showNotification('Added to favorites!', 'success');
-            return { success: true };
-        } catch (error) {
-            console.error('Error adding to favorites:', error);
-            this.showNotification('Failed to add to favorites', 'error');
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Remove from favorites
-    async removeFromFavorites(movieId) {
-        if (!this.currentUser) return;
-
-        try {
-            // Get current favorites - FIX: Use supabaseClient
-            const { data: profile } = await supabaseClient
-                .from('profiles')
-                .select('favorites')
-                .eq('id', this.currentUser.id)
-                .single();
-
-            const currentFavorites = profile?.favorites || [];
-            const newFavorites = currentFavorites.filter(id => id !== movieId);
-
-            // Update favorites - FIX: Use supabaseClient
-            const { error } = await supabaseClient
-                .from('profiles')
-                .update({
-                    favorites: newFavorites
-                })
-                .eq('id', this.currentUser.id);
-
-            if (error) throw error;
-
-            this.showNotification('Removed from favorites', 'success');
-            return { success: true };
-        } catch (error) {
-            console.error('Error removing from favorites:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
     // Sign out
     async signOut() {
+        if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
+
         try {
-            // FIX: Use supabaseClient
-            const { error } = await supabaseClient.auth.signOut();
+            const { error } = await window.supabaseClient.auth.signOut();
             if (error) throw error;
 
-            // Clear session check interval
             if (this.sessionCheckInterval) {
                 clearInterval(this.sessionCheckInterval);
             }
@@ -657,6 +348,26 @@ class AuthService {
         }
     }
 
+    // Get watch history
+    async getWatchHistory() {
+        if (!this.currentUser || !window.supabaseClient) return [];
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('watch_history')
+                .select('*')
+                .eq('user_id', this.currentUser.id)
+                .order('watched_at', { ascending: false })
+                .limit(20);
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('Error getting watch history:', error);
+            return [];
+        }
+    }
+
     // Update UI for logged in user
     updateUIForLoggedInUser() {
         if (!this.currentUser) return;
@@ -664,7 +375,6 @@ class AuthService {
         const profile = this.userProfile || {};
         const metadata = this.currentUser.user_metadata || {};
         
-        // Update all profile elements
         const elements = {
             'profile-avatar': profile.avatar || metadata.avatar_url || metadata.picture || 'img/avatars/avatar1.png',
             'profile-menu-avatar': profile.avatar || metadata.avatar_url || metadata.picture || 'img/avatars/avatar1.png',
@@ -687,13 +397,6 @@ class AuthService {
             }
         });
 
-        // Update language selector if exists
-        const languageSelect = document.getElementById('language-select');
-        if (languageSelect && profile.preferences?.language) {
-            languageSelect.value = profile.preferences.language;
-        }
-
-        // Show/hide elements
         document.querySelectorAll('#login-btn').forEach(btn => {
             if (btn) btn.style.display = 'none';
         });
@@ -762,11 +465,9 @@ let authService = null;
 
 // Wait for Supabase CLIENT to be ready
 const initializeAuthService = () => {
-    // FIX: Wait for supabaseClient, not the base supabase library
-    if (typeof supabaseClient !== 'undefined') {
+    if (typeof window !== 'undefined' && window.supabaseClient) {
         authService = new AuthService();
         window.authService = authService;
-        console.log('%c🔐 Supabase Auth Service Ready', 'color: #3ECF8E; font-weight: bold; font-size: 14px');
     } else {
         setTimeout(initializeAuthService, 100);
     }
@@ -781,9 +482,9 @@ if (document.readyState === 'loading') {
 
 // Global functions for HTML handlers
 window.handleLogout = async function() {
-    // Use the new custom confirmation
     window.showConfirmation('Are you sure you want to log out?', async () => {
-        // FIX: The function is named signOut(), not logout()
-        await authService.signOut();
+        if (window.authService) {
+            await window.authService.signOut();
+        }
     });
 }
