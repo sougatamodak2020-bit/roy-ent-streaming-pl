@@ -1,5 +1,5 @@
 // ========================================
-// MAIN SCRIPT - COMPLETELY FIXED
+// MAIN SCRIPT - FINAL FIXED VERSION
 // Roy Entertainment
 // ========================================
 
@@ -18,18 +18,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    /* --- HERO SLIDER - COMPLETELY FIXED --- */
+    /* --- HERO SLIDER - FIXED VERSION --- */
     function initializeSlider() {
         const slider = document.querySelector('.hero-slider');
         const dotsContainer = document.getElementById('slider-dots');
         
-        // Check if both elements exist
-        if (!slider || !dotsContainer) {
-            console.log('Slider elements not found');
+        // Exit if no slider
+        if (!slider) {
+            console.log('No slider on this page');
             return;
         }
 
-        // Get only slide elements (not the gradient overlay)
+        // Exit if no dots container
+        if (!dotsContainer) {
+            console.log('No dots container found');
+            return;
+        }
+
+        // Get slides
         const slides = Array.from(slider.children).filter(el => el.classList.contains('slide'));
         
         if (slides.length === 0) {
@@ -40,9 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentSlideIndex = 0;
         let autoScrollInterval = null;
 
-        // Clear existing dots and create new ones
+        // Create dots
         dotsContainer.innerHTML = '';
-        
         slides.forEach((_, i) => {
             const dot = document.createElement('button');
             dot.classList.add('dot');
@@ -58,8 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const dots = Array.from(dotsContainer.children);
 
         function updateSlider() {
-            // Use scrollWidth instead of clientWidth and add null check
-            const slideWidth = slides[0]?.offsetWidth || window.innerWidth;
+            // Get first slide width safely
+            const firstSlide = slides[0];
+            if (!firstSlide) return;
+            
+            const slideWidth = firstSlide.offsetWidth || window.innerWidth;
             
             if (slider) {
                 slider.scrollTo({
@@ -87,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
         function stopAutoScroll() {
             if (autoScrollInterval) {
                 clearInterval(autoScrollInterval);
-                autoScrollInterval = null;
             }
         }
 
@@ -96,74 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
             startAutoScroll();
         }
 
-        // Setup intersection observer for smooth scrolling
-        if ('IntersectionObserver' in window && slider) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const index = slides.indexOf(entry.target);
-                        if (index !== -1) {
-                            currentSlideIndex = index;
-                            dots.forEach((dot, i) => {
-                                dot.classList.toggle('active', i === currentSlideIndex);
-                            });
-                        }
-                    }
-                });
-            }, { root: slider, threshold: 0.51 });
-
-            slides.forEach(slide => observer.observe(slide));
-        }
-
-        // Event listeners
-        if (slider) {
-            slider.addEventListener('mouseenter', stopAutoScroll);
-            slider.addEventListener('mouseleave', startAutoScroll);
-        }
-        
+        // Events
+        slider.addEventListener('mouseenter', stopAutoScroll);
+        slider.addEventListener('mouseleave', startAutoScroll);
         window.addEventListener('resize', updateSlider);
 
-        // Start auto scroll
+        // Start
         startAutoScroll();
-        
-        console.log('✅ Slider initialized successfully');
+        console.log('✅ Slider initialized');
     }
 
-    // Initialize slider after a small delay to ensure DOM is ready
+    // Run slider init after delay
     setTimeout(initializeSlider, 100);
 
-    /* --- LOGIN REQUIRED POPUP --- */
-    window.showLoginRequired = function(movieId = null) {
-        const popup = document.createElement('div');
-        popup.className = 'login-required-overlay';
-        let redirect = 'login.html';
-        if (movieId) {
-            redirect = `login.html?redirect=watch.html?movie=${movieId}`;
-        }
-        
-        popup.innerHTML = `
-            <div class="login-required-card">
-                <i class="fas fa-lock"></i>
-                <h2>Login Required</h2>
-                <p>Please login to watch this content</p>
-                <div class="popup-actions">
-                    <a href="${redirect}" class="popup-btn primary">Login / Sign Up</a>
-                    <button class="popup-btn" id="close-popup">Cancel</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(popup);
-        setTimeout(() => popup.classList.add('show'), 10);
-
-        popup.addEventListener('click', (e) => {
-            if (e.target.id === 'close-popup' || e.target === popup) {
-                popup.classList.remove('show');
-                setTimeout(() => popup.remove(), 300);
-            }
-        });
-    };
-
-    /* --- SEARCH FUNCTIONALITY --- */
+    /* --- SEARCH --- */
     const searchBar = document.getElementById('search-bar');
     if (searchBar) {
         searchBar.addEventListener('keypress', (e) => {
@@ -176,162 +129,132 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* --- NOTIFICATION SYSTEM --- */
-    window.showNotification = function(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
-            color: white;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 10000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-        `;
-        
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-        
-        setTimeout(() => {
-            notification.style.transform = 'translateX(400px)';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    };
-
-    /* --- CONFIRMATION DIALOG --- */
-    window.showConfirmation = function(message, onConfirm) {
-        const modal = document.getElementById('custom-confirm-modal');
-        const messageEl = document.getElementById('custom-confirm-message');
-        const okBtn = document.getElementById('custom-confirm-ok');
-        const cancelBtn = document.getElementById('custom-confirm-cancel');
-        
-        if (!modal || !messageEl || !okBtn || !cancelBtn) {
-            // Fallback to native confirm
-            if (confirm(message) && onConfirm) {
-                onConfirm();
-            }
-            return;
-        }
-        
-        messageEl.textContent = message;
-        modal.classList.add('show');
-        
-        const handleOk = () => {
-            modal.classList.remove('show');
-            if (onConfirm) onConfirm();
-            cleanup();
-        };
-        
-        const handleCancel = () => {
-            modal.classList.remove('show');
-            cleanup();
-        };
-        
-        const cleanup = () => {
-            okBtn.removeEventListener('click', handleOk);
-            cancelBtn.removeEventListener('click', handleCancel);
-        };
-        
-        okBtn.addEventListener('click', handleOk);
-        cancelBtn.addEventListener('click', handleCancel);
-    };
-
-    /* --- SMOOTH SCROLL --- */
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            if (targetId && targetId !== '#') {
-                const target = document.querySelector(targetId);
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            }
-        });
-    });
-
-    /* --- FILM CARD CLICKS --- */
+    /* --- FILM CARDS --- */
     document.body.addEventListener('click', (e) => {
         const filmCard = e.target.closest('.film-card[data-movie-id]');
-        if (filmCard && !e.target.closest('a') && !e.target.closest('button')) {
+        if (filmCard && !e.target.closest('a')) {
             const movieId = filmCard.dataset.movieId;
             if (movieId) {
                 window.location.href = `watch.html?movie=${movieId}`;
             }
         }
     });
+
+    /* --- SMOOTH SCROLL --- */
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if (targetId && targetId !== '#') {
+                e.preventDefault();
+                const target = document.querySelector(targetId);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+    });
 });
 
-/* --- GLOBAL MODAL FUNCTIONS --- */
-window.openAvatarSelector = function() {
-    const modal = document.getElementById('avatar-modal');
-    if (modal) modal.classList.add('show');
+/* --- GLOBAL FUNCTIONS --- */
+window.showLoginRequired = function(movieId = null) {
+    const popup = document.createElement('div');
+    popup.className = 'login-required-overlay';
+    popup.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    let redirect = movieId ? `login.html?redirect=watch.html?movie=${movieId}` : 'login.html';
+    
+    popup.innerHTML = `
+        <div class="login-required-card" style="background: var(--bg-card); padding: 30px; border-radius: 10px;">
+            <i class="fas fa-lock" style="font-size: 3rem; color: var(--accent-primary);"></i>
+            <h2>Login Required</h2>
+            <p>Please login to watch this content</p>
+            <div class="popup-actions" style="margin-top: 20px;">
+                <a href="${redirect}" class="btn-primary" style="margin-right: 10px;">Login / Sign Up</a>
+                <button onclick="this.closest('.login-required-overlay').remove()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
 };
 
-window.closeAvatarSelector = function() {
-    const modal = document.getElementById('avatar-modal');
-    if (modal) modal.classList.remove('show');
+window.showNotification = function(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+        color: white;
+        border-radius: 5px;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transform: translateX(400px);
+        transition: transform 0.3s;
+    `;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => { notification.style.transform = 'translateX(0)'; }, 100);
+    setTimeout(() => {
+        notification.style.transform = 'translateX(400px)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 };
 
-window.selectAvatar = function(avatarUrl) {
-    if (window.profileManager) {
-        window.profileManager.updateAvatar(avatarUrl);
+window.showConfirmation = function(message, onConfirm) {
+    const modal = document.getElementById('custom-confirm-modal');
+    if (modal) {
+        document.getElementById('custom-confirm-message').textContent = message;
+        modal.classList.add('show');
+        document.getElementById('custom-confirm-ok').onclick = () => {
+            modal.classList.remove('show');
+            if (onConfirm) onConfirm();
+        };
+        document.getElementById('custom-confirm-cancel').onclick = () => {
+            modal.classList.remove('show');
+        };
+    } else if (confirm(message) && onConfirm) {
+        onConfirm();
     }
+};
+
+// Modal functions
+window.openAvatarSelector = () => document.getElementById('avatar-modal')?.classList.add('show');
+window.closeAvatarSelector = () => document.getElementById('avatar-modal')?.classList.remove('show');
+window.openUploadPhoto = () => document.getElementById('upload-modal')?.classList.add('show');
+window.closeUploadPhoto = () => document.getElementById('upload-modal')?.classList.remove('show');
+window.closeAppDownload = () => document.getElementById('app-download-modal')?.classList.remove('show');
+window.downloadApp = () => document.getElementById('app-download-modal')?.classList.add('show');
+
+window.selectAvatar = (url) => {
+    if (window.profileManager) window.profileManager.updateAvatar(url);
     closeAvatarSelector();
 };
 
-window.openUploadPhoto = function() {
-    const modal = document.getElementById('upload-modal');
-    if (modal) modal.classList.add('show');
-};
+window.uploadFromGallery = () => document.getElementById('file-input')?.click();
+window.uploadFromGoogleDrive = () => window.showNotification('Coming soon!', 'info');
 
-window.closeUploadPhoto = function() {
-    const modal = document.getElementById('upload-modal');
-    if (modal) modal.classList.remove('show');
-};
-
-window.uploadFromGallery = function() {
-    const fileInput = document.getElementById('file-input');
-    if (fileInput) fileInput.click();
-};
-
-window.uploadFromGoogleDrive = function() {
-    window.showNotification('Google Drive integration coming soon!', 'info');
-};
-
-window.handleFileUpload = function(event) {
+window.handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-        if (!file.type.startsWith('image/')) {
-            window.showNotification('Please select an image file', 'error');
-            return;
-        }
-        
-        if (file.size > 5 * 1024 * 1024) {
-            window.showNotification('Image size must be less than 5MB', 'error');
-            return;
-        }
-        
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = (e) => {
             if (window.profileManager) {
                 window.profileManager.updateAvatar(e.target.result);
                 closeUploadPhoto();
@@ -341,61 +264,11 @@ window.handleFileUpload = function(event) {
     }
 };
 
-window.openWatchHistory = function() {
-    window.location.href = 'watch-history.html';
-};
-
-window.openSettings = function() {
-    window.showNotification('Settings page coming soon!', 'info');
-};
-
-window.changeLanguage = function(lang) {
-    console.log('Language changed to:', lang);
-    window.showNotification(`Language changed to ${lang}`, 'success');
-};
-
-window.downloadApp = function() {
-    const modal = document.getElementById('app-download-modal');
-    if (modal) modal.classList.add('show');
-};
-
-window.closeAppDownload = function() {
-    const modal = document.getElementById('app-download-modal');
-    if (modal) modal.classList.remove('show');
-};
-
-window.handleLogout = function() {
-    window.showConfirmation('Are you sure you want to log out?', async () => {
-        if (window.authService) {
-            await window.authService.signOut();
-        }
+window.openWatchHistory = () => window.location.href = 'watch-history.html';
+window.openSettings = () => window.showNotification('Settings coming soon!', 'info');
+window.changeLanguage = (lang) => window.showNotification(`Language: ${lang}`, 'success');
+window.handleLogout = () => {
+    window.showConfirmation('Log out?', () => {
+        if (window.authService) window.authService.signOut();
     });
 };
-
-/* --- DATABASE CONNECTION TEST --- */
-window.addEventListener('load', () => {
-    // Test database connection after everything loads
-    setTimeout(async () => {
-        if (window.supabaseClient) {
-            try {
-                const { data, error } = await window.supabaseClient
-                    .from('movies')
-                    .select('id, title')
-                    .limit(1);
-                
-                if (error) {
-                    console.error('❌ Database access error:', error);
-                    console.log('Movies table might not be accessible. Check RLS policies.');
-                } else if (data && data.length > 0) {
-                    console.log('✅ Database connected! Sample movie:', data[0].title);
-                } else {
-                    console.log('⚠️ Database connected but no movies found');
-                }
-            } catch (err) {
-                console.error('Database connection test failed:', err);
-            }
-        } else {
-            console.log('⚠️ Supabase client not initialized yet');
-        }
-    }, 2000);
-});

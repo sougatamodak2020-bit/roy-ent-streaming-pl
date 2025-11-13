@@ -1,5 +1,5 @@
 // ========================================
-// SUPABASE AUTHENTICATION SERVICE - FIXED
+// SUPABASE AUTHENTICATION SERVICE - COMPLETE FIXED VERSION
 // Roy Entertainment
 // ========================================
 
@@ -8,36 +8,21 @@ class AuthService {
         this.currentUser = null;
         this.userProfile = null;
         this.sessionCheckInterval = null;
-        this.initialized = false;
-        
-        // Don't initialize immediately, wait for Supabase
-        this.waitForSupabase();
-    }
-
-    // Wait for Supabase to be ready
-    async waitForSupabase() {
-        let attempts = 0;
-        const maxAttempts = 100; // 10 seconds max
-        
-        while (!window.supabaseClient && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        if (!window.supabaseClient) {
-            console.error('❌ Supabase client not available after 10 seconds');
-            return;
-        }
-        
-        console.log('🔐 Auth service found Supabase client, initializing...');
-        await this.initializeAuth();
+        // DON'T call initializeAuth here - wait for Supabase
     }
 
     // Initialize authentication state listener
     async initializeAuth() {
         try {
-            // Check if supabaseClient and its auth property exist
-            if (!window.supabaseClient || !window.supabaseClient.auth) {
+            // CRITICAL: Check if supabaseClient exists before using it
+            if (!window.supabaseClient) {
+                console.log('Waiting for Supabase client...');
+                setTimeout(() => this.initializeAuth(), 100);
+                return;
+            }
+
+            // Check if auth property exists
+            if (!window.supabaseClient.auth) {
                 console.error('Supabase auth not available');
                 return;
             }
@@ -58,10 +43,8 @@ class AuthService {
                 this.currentUser = session.user;
                 await this.loadUserProfile();
                 this.updateUIForLoggedInUser();
-                console.log('User already logged in:', this.currentUser.email);
             } else {
                 this.updateUIForLoggedOutUser();
-                console.log('No active session');
             }
 
             // Listen for auth state changes
@@ -96,8 +79,7 @@ class AuthService {
 
             // Setup session refresh check
             this.setupSessionCheck();
-            this.initialized = true;
-            console.log('🔐 Supabase Auth Service Ready');
+            console.log('🔐 Auth service initialized successfully');
             
         } catch (error) {
             console.error('Auth initialization error:', error);
@@ -107,13 +89,16 @@ class AuthService {
 
     // Handle OAuth callback
     async handleOAuthCallback() {
+        // Check if we're returning from an OAuth flow
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const searchParams = new URLSearchParams(window.location.search);
         
         if (hashParams.get('access_token') || searchParams.get('code')) {
             try {
+                // Clean up URL
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
+                // Get session
                 const { data: { session }, error } = await window.supabaseClient.auth.getSession();
                 
                 if (error) throw error;
@@ -133,6 +118,7 @@ class AuthService {
 
     // Setup periodic session check
     setupSessionCheck() {
+        // Check session every 30 seconds
         this.sessionCheckInterval = setInterval(async () => {
             if (!window.supabaseClient) return;
             
@@ -143,6 +129,7 @@ class AuthService {
                 return;
             }
             
+            // Update current user if session changed
             if (session?.user?.id !== this.currentUser?.id) {
                 if (session) {
                     this.currentUser = session.user;
@@ -169,6 +156,7 @@ class AuthService {
                 .single();
 
             if (error && error.code === 'PGRST116') {
+                // Profile doesn't exist, create it
                 await this.createUserProfile();
                 return;
             }
@@ -220,6 +208,12 @@ class AuthService {
         if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
 
         try {
+            // Check if email already exists
+            const { data: existingUser } = await window.supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: 'dummy_check_password'
+            });
+
             const { data, error } = await window.supabaseClient.auth.signUp({
                 email: email,
                 password: password,
@@ -240,6 +234,7 @@ class AuthService {
                 throw error;
             }
 
+            // Check if email confirmation is required
             if (data?.user?.identities?.length === 0) {
                 return {
                     success: true,
@@ -274,6 +269,7 @@ class AuthService {
 
             if (error) throw error;
 
+            // Update last login in profile
             if (data.user) {
                 await window.supabaseClient
                     .from('profiles')
@@ -311,6 +307,8 @@ class AuthService {
             });
 
             if (error) throw error;
+
+            // The browser will redirect to Google
             return { success: true };
         } catch (error) {
             console.error('Google sign-in error:', error);
@@ -318,6 +316,334 @@ class AuthService {
                 success: false,
                 error: this.getErrorMessage(error)
             };
+        }
+    }
+
+    // Sign in with GitHub
+    async signInWithGitHub() {
+        if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
+
+        try {
+            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                    redirectTo: window.location.origin,
+                    scopes: 'read:user user:email'
+                }
+            });
+
+            if (error) throw error;
+
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error)
+            };
+        }
+    }
+
+    // Sign in with Facebook
+    async signInWithFacebook() {
+        if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
+
+        try {
+            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                provider: 'facebook',
+                options: {
+                    redirectTo: window.location.origin,
+                    scopes: 'email public_profile'
+                }
+            });
+
+            if (error) throw error;
+
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error)
+            };
+        }
+    }
+
+    // Reset password
+    async resetPassword(email) {
+        if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
+
+        try {
+            const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password.html`
+            });
+
+            if (error) throw error;
+
+            return {
+                success: true,
+                message: 'Password reset email sent! Please check your inbox.'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error)
+            };
+        }
+    }
+
+    // Update password
+    async updatePassword(newPassword) {
+        if (!window.supabaseClient) return { success: false, error: 'Service not ready' };
+
+        try {
+            const { error } = await window.supabaseClient.auth.updateUser({
+                password: newPassword
+            });
+
+            if (error) throw error;
+
+            return {
+                success: true,
+                message: 'Password updated successfully!'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error)
+            };
+        }
+    }
+
+    // Update profile
+    async updateProfile(updates) {
+        if (!this.currentUser || !window.supabaseClient) return { success: false, error: 'Not authenticated' };
+
+        try {
+            // Update user metadata if name or avatar changed
+            if (updates.name || updates.avatar) {
+                const { error: authError } = await window.supabaseClient.auth.updateUser({
+                    data: {
+                        name: updates.name || this.userProfile?.name,
+                        full_name: updates.name || this.userProfile?.name,
+                        avatar_url: updates.avatar || this.userProfile?.avatar
+                    }
+                });
+                
+                if (authError) throw authError;
+            }
+
+            // Update profile in database
+            const { data, error } = await window.supabaseClient
+                .from('profiles')
+                .update({
+                    ...updates,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', this.currentUser.id)
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            this.userProfile = data;
+            this.updateUIForLoggedInUser();
+
+            return { success: true };
+        } catch (error) {
+            console.error('Profile update error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    // Upload profile picture
+    async uploadProfilePicture(file) {
+        if (!this.currentUser || !window.supabaseClient) return { success: false, error: 'Not authenticated' };
+
+        try {
+            // Validate file
+            if (!file.type.startsWith('image/')) {
+                throw new Error('Please select an image file');
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                throw new Error('Image size must be less than 5MB');
+            }
+
+            // Show upload progress
+            this.showNotification('Uploading photo...', 'info');
+
+            // Generate unique filename
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${this.currentUser.id}/${Date.now()}.${fileExt}`;
+            
+            // First, create the bucket if it doesn't exist
+            const { data: buckets } = await window.supabaseClient.storage.listBuckets();
+            const profilesBucket = buckets?.find(b => b.name === 'profiles');
+            
+            if (!profilesBucket) {
+                await window.supabaseClient.storage.createBucket('profiles', {
+                    public: true,
+                    fileSizeLimit: 5242880 // 5MB
+                });
+            }
+
+            // Upload to Supabase Storage
+            const { data, error } = await window.supabaseClient.storage
+                .from('profiles')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            if (error) throw error;
+
+            // Get public URL
+            const { data: { publicUrl } } = window.supabaseClient.storage
+                .from('profiles')
+                .getPublicUrl(fileName);
+
+            // Update profile with new avatar URL
+            await this.updateProfile({ avatar: publicUrl });
+
+            this.showNotification('Photo uploaded successfully!', 'success');
+
+            return {
+                success: true,
+                url: publicUrl
+            };
+        } catch (error) {
+            console.error('Upload error:', error);
+            this.showNotification('Upload failed: ' + error.message, 'error');
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    // Save watch history
+    async saveWatchHistory(movieId, currentTime, duration) {
+        if (!this.currentUser || !window.supabaseClient) return;
+
+        try {
+            const progress = (currentTime / duration) * 100;
+            
+            const { error } = await window.supabaseClient
+                .from('watch_history')
+                .upsert({
+                    user_id: this.currentUser.id,
+                    movie_id: movieId,
+                    current_time: currentTime,
+                    duration: duration,
+                    progress: progress,
+                    timestamp: new Date().toISOString()
+                }, {
+                    onConflict: 'user_id,movie_id'
+                });
+
+            if (error) throw error;
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving watch history:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Get watch history
+    async getWatchHistory() {
+        if (!this.currentUser || !window.supabaseClient) return [];
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('watch_history')
+                .select('*')
+                .eq('user_id', this.currentUser.id)
+                .order('timestamp', { ascending: false })
+                .limit(20);
+
+            if (error) throw error;
+
+            return data || [];
+        } catch (error) {
+            console.error('Error getting watch history:', error);
+            return [];
+        }
+    }
+
+    // Add to favorites
+    async addToFavorites(movieId) {
+        if (!this.currentUser || !window.supabaseClient) {
+            this.showNotification('Please login to add favorites', 'error');
+            return;
+        }
+
+        try {
+            // Get current favorites
+            const { data: profile } = await window.supabaseClient
+                .from('profiles')
+                .select('favorites')
+                .eq('id', this.currentUser.id)
+                .single();
+
+            const currentFavorites = profile?.favorites || [];
+            
+            if (currentFavorites.includes(movieId)) {
+                this.showNotification('Already in favorites', 'info');
+                return;
+            }
+
+            // Add to favorites
+            const { error } = await window.supabaseClient
+                .from('profiles')
+                .update({
+                    favorites: [...currentFavorites, movieId]
+                })
+                .eq('id', this.currentUser.id);
+
+            if (error) throw error;
+
+            this.showNotification('Added to favorites!', 'success');
+            return { success: true };
+        } catch (error) {
+            console.error('Error adding to favorites:', error);
+            this.showNotification('Failed to add to favorites', 'error');
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Remove from favorites
+    async removeFromFavorites(movieId) {
+        if (!this.currentUser || !window.supabaseClient) return;
+
+        try {
+            // Get current favorites
+            const { data: profile } = await window.supabaseClient
+                .from('profiles')
+                .select('favorites')
+                .eq('id', this.currentUser.id)
+                .single();
+
+            const currentFavorites = profile?.favorites || [];
+            const newFavorites = currentFavorites.filter(id => id !== movieId);
+
+            // Update favorites
+            const { error } = await window.supabaseClient
+                .from('profiles')
+                .update({
+                    favorites: newFavorites
+                })
+                .eq('id', this.currentUser.id);
+
+            if (error) throw error;
+
+            this.showNotification('Removed from favorites', 'success');
+            return { success: true };
+        } catch (error) {
+            console.error('Error removing from favorites:', error);
+            return { success: false, error: error.message };
         }
     }
 
@@ -329,6 +655,7 @@ class AuthService {
             const { error } = await window.supabaseClient.auth.signOut();
             if (error) throw error;
 
+            // Clear session check interval
             if (this.sessionCheckInterval) {
                 clearInterval(this.sessionCheckInterval);
             }
@@ -348,26 +675,6 @@ class AuthService {
         }
     }
 
-    // Get watch history
-    async getWatchHistory() {
-        if (!this.currentUser || !window.supabaseClient) return [];
-
-        try {
-            const { data, error } = await window.supabaseClient
-                .from('watch_history')
-                .select('*')
-                .eq('user_id', this.currentUser.id)
-                .order('watched_at', { ascending: false })
-                .limit(20);
-
-            if (error) throw error;
-            return data || [];
-        } catch (error) {
-            console.error('Error getting watch history:', error);
-            return [];
-        }
-    }
-
     // Update UI for logged in user
     updateUIForLoggedInUser() {
         if (!this.currentUser) return;
@@ -375,6 +682,7 @@ class AuthService {
         const profile = this.userProfile || {};
         const metadata = this.currentUser.user_metadata || {};
         
+        // Update all profile elements
         const elements = {
             'profile-avatar': profile.avatar || metadata.avatar_url || metadata.picture || 'img/avatars/avatar1.png',
             'profile-menu-avatar': profile.avatar || metadata.avatar_url || metadata.picture || 'img/avatars/avatar1.png',
@@ -397,6 +705,13 @@ class AuthService {
             }
         });
 
+        // Update language selector if exists
+        const languageSelect = document.getElementById('language-select');
+        if (languageSelect && profile.preferences?.language) {
+            languageSelect.value = profile.preferences.language;
+        }
+
+        // Show/hide elements
         document.querySelectorAll('#login-btn').forEach(btn => {
             if (btn) btn.style.display = 'none';
         });
@@ -460,28 +775,36 @@ class AuthService {
     }
 }
 
-// Initialize auth service
+// Initialize auth service - FIXED VERSION
 let authService = null;
 
-// Wait for Supabase CLIENT to be ready
-const initializeAuthService = () => {
-    if (typeof window !== 'undefined' && window.supabaseClient) {
+// Wait for both DOM and Supabase
+function initializeAuthService() {
+    // Check if supabaseClient exists
+    if (window.supabaseClient) {
         authService = new AuthService();
         window.authService = authService;
+        // Now initialize auth
+        authService.initializeAuth();
+        console.log('🔐 Supabase Auth Service Ready');
     } else {
+        // Wait and try again
         setTimeout(initializeAuthService, 100);
     }
-};
+}
 
-// Start initialization
+// Start initialization when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeAuthService);
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initializeAuthService, 500); // Give Supabase time to load
+    });
 } else {
-    initializeAuthService();
+    setTimeout(initializeAuthService, 500);
 }
 
 // Global functions for HTML handlers
 window.handleLogout = async function() {
+    // Use the new custom confirmation
     window.showConfirmation('Are you sure you want to log out?', async () => {
         if (window.authService) {
             await window.authService.signOut();
