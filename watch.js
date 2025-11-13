@@ -234,9 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) throw error;
             
-            // --- FIX for 404 "undefined" error ---
             grid.innerHTML = data.map(m => {
-                const poster = m.poster_url || FALLBACK_POSTER; // Define poster here
+                const poster = m.poster_url || FALLBACK_POSTER; 
                 return `
                 <div class="film-card" data-movie-id="${m.id}">
                     <div class="card-thumbnail">
@@ -265,19 +264,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!user) return;
 
         try {
-            // --- FIX for 400 "timestamp" error ---
-            // Only upsert the columns that exist.
-            // You should add a 'timestamp' column in Supabase for full functionality.
+            // This code is now correct because your 'timestamp' column exists
             const { error } = await supabaseClient
                 .from('watch_history')
                 .upsert({
                     user_id: user.id,
-                    movie_id: movieId
-                    // timestamp: new Date().toISOString() // This line caused the error
+                    movie_id: movieId,
+                    timestamp: new Date().toISOString() 
                 }, { onConflict: 'user_id, movie_id' }); 
 
             if (error) {
-                console.error('Error updating watch history:', error);
+                console.error('Error updating watch history:', error); 
             } else {
                 console.log('✅ Watch history updated.');
             }
