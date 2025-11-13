@@ -3,6 +3,73 @@ DYNAMIC CONTENT LOADER - FIXED VERSION
 Roy Entertainment
 ======================================== */
 
+
+// Add this at the very top of dynamic-loader.js
+console.log('🎬 Dynamic loader starting...');
+
+// Emergency fallback if Supabase fails
+window.FALLBACK_MOVIES = [
+    {
+        id: 'asur',
+        title: 'Asur',
+        poster: 'img/movie-banner-1.png',
+        banner: 'img/movie-banner-1.png',
+        rating: 9.5,
+        release: '2025',
+        runtime: '5:01 min',
+        genre: ['Mystery', 'Thriller'],
+        description: 'A forensic expert and a criminal investigator pursue a serial killer...'
+    },
+    // Add more fallback movies as needed
+];
+
+// Test Supabase immediately
+if (window.supabaseClient) {
+    window.supabaseClient
+        .from('movies')
+        .select('id')
+        .limit(1)
+        .then(({ data, error }) => {
+            if (error) {
+                console.error('❌ Movies not accessible:', error);
+                console.log('Using fallback movies');
+                // Load fallback content
+                loadFallbackContent();
+            } else {
+                console.log('✅ Movies accessible from Supabase');
+            }
+        });
+}
+
+function loadFallbackContent() {
+    const container = document.querySelector('#our-productions .film-grid');
+    if (container && window.FALLBACK_MOVIES) {
+        container.innerHTML = window.FALLBACK_MOVIES.map(movie => `
+            <article class="film-card" data-movie-id="${movie.id}">
+                <div class="rating-display">
+                    <i class="fas fa-star"></i>
+                    <span>${movie.rating}</span>
+                </div>
+                <img src="${movie.poster}" alt="${movie.title}" />
+                <div class="card-content">
+                    <h3>${movie.title}</h3>
+                    <div class="film-card-meta">
+                        <span class="rating"><i class="fas fa-star"></i> ${movie.rating}</span>
+                        <span>${movie.release}</span>
+                        <span>${movie.runtime}</span>
+                    </div>
+                    <p>${movie.description}</p>
+                </div>
+            </article>
+        `).join('');
+        console.log('✅ Fallback content loaded');
+    }
+}
+
+// Continue with your existing dynamic-loader.js code below...
+
+
+
 // Wait for DOM and Supabase
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🎬 Dynamic loader starting...');

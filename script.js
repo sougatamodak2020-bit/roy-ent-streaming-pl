@@ -1,5 +1,5 @@
 // ========================================
-// MAIN SCRIPT - FIXED VERSION
+// MAIN SCRIPT - COMPLETELY FIXED
 // Roy Entertainment
 // ========================================
 
@@ -18,150 +18,184 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    /* --- 1. SLIDER FUNCTIONALITY (FIXED) --- */
-    const slider = document.querySelector('.hero-slider');
-    const dotsContainer = document.getElementById('slider-dots');
-    
-    if (slider && dotsContainer) {
-        const slides = [...slider.children].filter(el => el.classList.contains('slide'));
+    /* --- HERO SLIDER - COMPLETELY FIXED --- */
+    function initializeSlider() {
+        const slider = document.querySelector('.hero-slider');
+        const dotsContainer = document.getElementById('slider-dots');
         
-        if (slides.length > 0) {
-            let currentSlideIndex = 0;
-            let autoScrollInterval = null;
-
-            // Create dots
-            slides.forEach((_, i) => {
-                const dot = document.createElement('button');
-                dot.classList.add('dot');
-                if (i === 0) dot.classList.add('active');
-                dot.addEventListener('click', () => {
-                    currentSlideIndex = i;
-                    updateSlider();
-                    restartAutoScroll();
-                });
-                dotsContainer.appendChild(dot);
-            });
-
-            const dots = [...dotsContainer.children];
-
-            function updateSlider() {
-                // Check if slider has clientWidth before using it
-                if (slider && slider.clientWidth) {
-                    const slideWidth = slider.clientWidth;
-                    slider.scrollTo({
-                        left: currentSlideIndex * slideWidth,
-                        behavior: 'smooth'
-                    });
-                    
-                    // Update dots
-                    dots.forEach((dot, i) => {
-                        dot.classList.toggle('active', i === currentSlideIndex);
-                    });
-                }
-            }
-
-            function nextSlide() {
-                currentSlideIndex = (currentSlideIndex + 1) % slides.length;
-                updateSlider();
-            }
-
-            function startAutoScroll() {
-                stopAutoScroll();
-                autoScrollInterval = setInterval(nextSlide, 5000);
-            }
-
-            function stopAutoScroll() {
-                if (autoScrollInterval) {
-                    clearInterval(autoScrollInterval);
-                    autoScrollInterval = null;
-                }
-            }
-
-            function restartAutoScroll() {
-                stopAutoScroll();
-                startAutoScroll();
-            }
-
-            // Setup intersection observer for smooth scrolling
-            if ('IntersectionObserver' in window) {
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            const index = slides.indexOf(entry.target);
-                            if (index !== -1) {
-                                currentSlideIndex = index;
-                                dots.forEach((dot, i) => {
-                                    dot.classList.toggle('active', i === currentSlideIndex);
-                                });
-                            }
-                        }
-                    });
-                }, { root: slider, threshold: 0.51 });
-
-                slides.forEach(slide => observer.observe(slide));
-            }
-
-            // Event listeners
-            slider.addEventListener('mouseenter', stopAutoScroll);
-            slider.addEventListener('mouseleave', startAutoScroll);
-            window.addEventListener('resize', updateSlider);
-
-            // Start auto scroll
-            startAutoScroll();
+        // Check if both elements exist
+        if (!slider || !dotsContainer) {
+            console.log('Slider elements not found');
+            return;
         }
-    }
 
-    /* --- 2. LOGIN REQUIRED POPUP --- */
-    if (typeof window.showLoginRequired === 'undefined') {
-        window.showLoginRequired = (movieId = null) => {
-            const popup = document.createElement('div');
-            popup.className = 'login-required-overlay';
-            let redirect = 'login.html';
-            if (movieId) {
-                redirect = `login.html?redirect=watch.html?movie=${movieId}`;
+        // Get only slide elements (not the gradient overlay)
+        const slides = Array.from(slider.children).filter(el => el.classList.contains('slide'));
+        
+        if (slides.length === 0) {
+            console.log('No slides found');
+            return;
+        }
+
+        let currentSlideIndex = 0;
+        let autoScrollInterval = null;
+
+        // Clear existing dots and create new ones
+        dotsContainer.innerHTML = '';
+        
+        slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.classList.add('dot');
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => {
+                currentSlideIndex = i;
+                updateSlider();
+                restartAutoScroll();
+            });
+            dotsContainer.appendChild(dot);
+        });
+
+        const dots = Array.from(dotsContainer.children);
+
+        function updateSlider() {
+            // Use scrollWidth instead of clientWidth and add null check
+            const slideWidth = slides[0]?.offsetWidth || window.innerWidth;
+            
+            if (slider) {
+                slider.scrollTo({
+                    left: currentSlideIndex * slideWidth,
+                    behavior: 'smooth'
+                });
             }
             
-            popup.innerHTML = `
-                <div class="login-required-card">
-                    <i class="fas fa-lock"></i>
-                    <h2>Login Required</h2>
-                    <p>Please login to watch this content</p>
-                    <div class="popup-actions">
-                        <a href="${redirect}" class="popup-btn primary">Login / Sign Up</a>
-                        <button class="popup-btn" id="close-popup">Cancel</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(popup);
-            setTimeout(() => popup.classList.add('show'), 10);
-
-            popup.addEventListener('click', (e) => {
-                if (e.target.id === 'close-popup' || e.target === popup) {
-                    popup.classList.remove('show');
-                    setTimeout(() => popup.remove(), 300);
-                }
+            // Update dots
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlideIndex);
             });
-        };
+        }
+
+        function nextSlide() {
+            currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+            updateSlider();
+        }
+
+        function startAutoScroll() {
+            stopAutoScroll();
+            autoScrollInterval = setInterval(nextSlide, 5000);
+        }
+
+        function stopAutoScroll() {
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+        }
+
+        function restartAutoScroll() {
+            stopAutoScroll();
+            startAutoScroll();
+        }
+
+        // Setup intersection observer for smooth scrolling
+        if ('IntersectionObserver' in window && slider) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const index = slides.indexOf(entry.target);
+                        if (index !== -1) {
+                            currentSlideIndex = index;
+                            dots.forEach((dot, i) => {
+                                dot.classList.toggle('active', i === currentSlideIndex);
+                            });
+                        }
+                    }
+                });
+            }, { root: slider, threshold: 0.51 });
+
+            slides.forEach(slide => observer.observe(slide));
+        }
+
+        // Event listeners
+        if (slider) {
+            slider.addEventListener('mouseenter', stopAutoScroll);
+            slider.addEventListener('mouseleave', startAutoScroll);
+        }
+        
+        window.addEventListener('resize', updateSlider);
+
+        // Start auto scroll
+        startAutoScroll();
+        
+        console.log('✅ Slider initialized successfully');
     }
 
-    /* --- 3. SEARCH FUNCTIONALITY --- */
+    // Initialize slider after a small delay to ensure DOM is ready
+    setTimeout(initializeSlider, 100);
+
+    /* --- LOGIN REQUIRED POPUP --- */
+    window.showLoginRequired = function(movieId = null) {
+        const popup = document.createElement('div');
+        popup.className = 'login-required-overlay';
+        let redirect = 'login.html';
+        if (movieId) {
+            redirect = `login.html?redirect=watch.html?movie=${movieId}`;
+        }
+        
+        popup.innerHTML = `
+            <div class="login-required-card">
+                <i class="fas fa-lock"></i>
+                <h2>Login Required</h2>
+                <p>Please login to watch this content</p>
+                <div class="popup-actions">
+                    <a href="${redirect}" class="popup-btn primary">Login / Sign Up</a>
+                    <button class="popup-btn" id="close-popup">Cancel</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(popup);
+        setTimeout(() => popup.classList.add('show'), 10);
+
+        popup.addEventListener('click', (e) => {
+            if (e.target.id === 'close-popup' || e.target === popup) {
+                popup.classList.remove('show');
+                setTimeout(() => popup.remove(), 300);
+            }
+        });
+    };
+
+    /* --- SEARCH FUNCTIONALITY --- */
     const searchBar = document.getElementById('search-bar');
     if (searchBar) {
-        searchBar.addEventListener('keypress', async (e) => {
+        searchBar.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const searchTerm = searchBar.value.trim();
                 if (searchTerm) {
-                    // Redirect to movies page with search query
                     window.location.href = `movies.html?search=${encodeURIComponent(searchTerm)}`;
                 }
             }
         });
     }
 
-    /* --- 4. NOTIFICATION SYSTEM --- */
+    /* --- NOTIFICATION SYSTEM --- */
     window.showNotification = function(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+            color: white;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        `;
+        
         notification.innerHTML = `
             <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
             <span>${message}</span>
@@ -169,22 +203,30 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.body.appendChild(notification);
         
-        setTimeout(() => notification.classList.add('show'), 100);
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
         
         setTimeout(() => {
-            notification.classList.remove('show');
+            notification.style.transform = 'translateX(400px)';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     };
 
-    /* --- 5. CONFIRMATION DIALOG --- */
+    /* --- CONFIRMATION DIALOG --- */
     window.showConfirmation = function(message, onConfirm) {
         const modal = document.getElementById('custom-confirm-modal');
         const messageEl = document.getElementById('custom-confirm-message');
         const okBtn = document.getElementById('custom-confirm-ok');
         const cancelBtn = document.getElementById('custom-confirm-cancel');
         
-        if (!modal || !messageEl || !okBtn || !cancelBtn) return;
+        if (!modal || !messageEl || !okBtn || !cancelBtn) {
+            // Fallback to native confirm
+            if (confirm(message) && onConfirm) {
+                onConfirm();
+            }
+            return;
+        }
         
         messageEl.textContent = message;
         modal.classList.add('show');
@@ -209,26 +251,31 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelBtn.addEventListener('click', handleCancel);
     };
 
-    /* --- 6. SMOOTH SCROLL --- */
+    /* --- SMOOTH SCROLL --- */
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+            const targetId = this.getAttribute('href');
+            if (targetId && targetId !== '#') {
+                const target = document.querySelector(targetId);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             }
         });
     });
 
-    /* --- 7. FILM CARD CLICKS --- */
+    /* --- FILM CARD CLICKS --- */
     document.body.addEventListener('click', (e) => {
         const filmCard = e.target.closest('.film-card[data-movie-id]');
-        if (filmCard && !e.target.closest('a')) {
+        if (filmCard && !e.target.closest('a') && !e.target.closest('button')) {
             const movieId = filmCard.dataset.movieId;
-            window.location.href = `watch.html?movie=${movieId}`;
+            if (movieId) {
+                window.location.href = `watch.html?movie=${movieId}`;
+            }
         }
     });
 });
@@ -267,16 +314,28 @@ window.uploadFromGallery = function() {
 };
 
 window.uploadFromGoogleDrive = function() {
-    alert('Google Drive integration coming soon!');
+    window.showNotification('Google Drive integration coming soon!', 'info');
 };
 
 window.handleFileUpload = function(event) {
     const file = event.target.files[0];
-    if (file && window.profileManager) {
+    if (file) {
+        if (!file.type.startsWith('image/')) {
+            window.showNotification('Please select an image file', 'error');
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            window.showNotification('Image size must be less than 5MB', 'error');
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
-            window.profileManager.updateAvatar(e.target.result);
-            closeUploadPhoto();
+            if (window.profileManager) {
+                window.profileManager.updateAvatar(e.target.result);
+                closeUploadPhoto();
+            }
         };
         reader.readAsDataURL(file);
     }
@@ -287,11 +346,12 @@ window.openWatchHistory = function() {
 };
 
 window.openSettings = function() {
-    alert('Settings page coming soon!');
+    window.showNotification('Settings page coming soon!', 'info');
 };
 
 window.changeLanguage = function(lang) {
     console.log('Language changed to:', lang);
+    window.showNotification(`Language changed to ${lang}`, 'success');
 };
 
 window.downloadApp = function() {
@@ -304,26 +364,38 @@ window.closeAppDownload = function() {
     if (modal) modal.classList.remove('show');
 };
 
-/* --- DATABASE TEST --- */
-window.addEventListener('load', async () => {
-    // Wait a bit for Supabase to initialize
+window.handleLogout = function() {
+    window.showConfirmation('Are you sure you want to log out?', async () => {
+        if (window.authService) {
+            await window.authService.signOut();
+        }
+    });
+};
+
+/* --- DATABASE CONNECTION TEST --- */
+window.addEventListener('load', () => {
+    // Test database connection after everything loads
     setTimeout(async () => {
         if (window.supabaseClient) {
             try {
                 const { data, error } = await window.supabaseClient
                     .from('movies')
-                    .select('id')
+                    .select('id, title')
                     .limit(1);
                 
                 if (error) {
-                    console.error('❌ Movies access test failed:', error);
-                    console.log('Check your Supabase RLS policies');
+                    console.error('❌ Database access error:', error);
+                    console.log('Movies table might not be accessible. Check RLS policies.');
+                } else if (data && data.length > 0) {
+                    console.log('✅ Database connected! Sample movie:', data[0].title);
                 } else {
-                    console.log('✅ Movies are accessible to users');
+                    console.log('⚠️ Database connected but no movies found');
                 }
             } catch (err) {
-                console.error('Database test error:', err);
+                console.error('Database connection test failed:', err);
             }
+        } else {
+            console.log('⚠️ Supabase client not initialized yet');
         }
-    }, 1000);
+    }, 2000);
 });
