@@ -2,6 +2,59 @@
 // MOVIES PAGE - WITH DESCRIPTION CARDS
 // ========================================
 
+
+
+// Add at the top of movies.js
+window.DEBUG_MODE = true; // Set to false in production
+
+async function debugSupabaseConnection() {
+    if (!window.DEBUG_MODE) return;
+    
+    console.group('🔍 Supabase Debug Info');
+    
+    // Check client
+    console.log('Client initialized:', !!window.supabaseClient);
+    
+    // Check session
+    try {
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+        if (sessionError) {
+            console.error('Session error:', sessionError);
+        } else {
+            console.log('Current session:', session ? 'Logged in as ' + session.user.email : 'Anonymous');
+        }
+    } catch (e) {
+        console.error('Failed to check session:', e);
+    }
+    
+    // Test movie access
+    try {
+        const { data, error, status, count } = await window.supabaseClient
+            .from('movies')
+            .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+            console.error('❌ Cannot access movies:', error);
+            console.error('Status:', status);
+            console.error('Full error:', {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+        } else {
+            console.log('✅ Can access movies. Total count:', count);
+        }
+    } catch (e) {
+        console.error('Unexpected error:', e);
+    }
+    
+    console.groupEnd();
+}
+
+// Call this before loading movies
+debugSupabaseConnection();
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🎬 Movies page initializing...');
     

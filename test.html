@@ -1,0 +1,98 @@
+<!-- test-access.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Movie Access</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .movie { padding: 10px; margin: 5px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>Movie Access Test</h1>
+    <button onclick="testAsAnonymous()">Test as Anonymous User</button>
+    <button onclick="testAsLoggedIn()">Test as Logged In</button>
+    <button onclick="clearSession()">Clear Session</button>
+    
+    <div id="status"></div>
+    <div id="movies"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script>
+        // Initialize Supabase directly
+        const SUPABASE_URL = 'https://kahsbllunfmoilgihfgo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthaHNibGx1bmZtb2lsZ2loZmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNDMxNzQsImV4cCI6MjA3NzkxOTE3NH0.iZN9BgyI6CnwE_HRtJqinm29009c6tkDLlJs7se5E0k';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        async function testAsAnonymous() {
+            const statusDiv = document.getElementById('status');
+            const moviesDiv = document.getElementById('movies');
+            
+            statusDiv.innerHTML = '<p>Testing as anonymous user...</p>';
+            
+            // Sign out first
+            await supabaseClient.auth.signOut();
+            
+            // Check current session
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            statusDiv.innerHTML += `<p>Session: ${session ? 'Logged in' : 'Anonymous'}</p>`;
+            
+            // Try to fetch movies
+            const { data: movies, error } = await supabaseClient
+                .from('movies')
+                .select('*')
+                .limit(5);
+            
+            if (error) {
+                statusDiv.innerHTML += `<p class="error">Error: ${error.message}</p>`;
+                statusDiv.innerHTML += `<pre>${JSON.stringify(error, null, 2)}</pre>`;
+                moviesDiv.innerHTML = '';
+            } else {
+                statusDiv.innerHTML += `<p class="success">Success! Found ${movies.length} movies</p>`;
+                moviesDiv.innerHTML = movies.map(m => 
+                    `<div class="movie">
+                        <strong>${m.title}</strong> (${m.release}) - Rating: ${m.rating}
+                    </div>`
+                ).join('');
+            }
+        }
+        
+        async function testAsLoggedIn() {
+            const statusDiv = document.getElementById('status');
+            
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                statusDiv.innerHTML = '<p class="error">Please log in first through your main app</p>';
+                return;
+            }
+            
+            statusDiv.innerHTML = `<p>Testing as: ${session.user.email}</p>`;
+            
+            // Try to fetch movies
+            const { data: movies, error } = await supabaseClient
+                .from('movies')
+                .select('*')
+                .limit(5);
+            
+            if (error) {
+                statusDiv.innerHTML += `<p class="error">Error: ${error.message}</p>`;
+            } else {
+                statusDiv.innerHTML += `<p class="success">Success! Found ${movies.length} movies as logged in user</p>`;
+            }
+        }
+        
+        async function clearSession() {
+            await supabaseClient.auth.signOut();
+            document.getElementById('status').innerHTML = '<p>Session cleared</p>';
+            document.getElementById('movies').innerHTML = '';
+        }
+        
+        // Test on load
+        testAsAnonymous();
+    </script>
+</body>
+</html>

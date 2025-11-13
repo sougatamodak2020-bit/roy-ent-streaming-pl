@@ -1,5 +1,5 @@
 // ========================================
-// WATCH PAGE - COMPLETE WITH DESCRIPTIONS
+// WATCH PAGE - FIXED VERSION
 // ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -103,7 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 .eq('id', currentMovieId)
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error('Database error:', error);
+                throw new Error('Unable to load movie. Please try again.');
+            }
+            
             if (!movie) throw new Error('Movie not found in database.');
 
             console.log(`✅ Movie loaded successfully:`, movie);
@@ -117,16 +121,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // 3. Load recommendations
             loadRecommendations(movie);
             
-            // 4. Update watch history
+            // 4. Update watch history (only if user is logged in)
             if (window.authService && window.authService.isLoggedIn()) {
-                updateWatchHistory(movie.id).catch(err => {
-                    console.log('Watch history update skipped');
-                });
+                // Don't await this, let it run in background
+                updateWatchHistory(movie.id);
             }
 
         } catch (error) {
             console.error('Error loading movie:', error);
-            showError(`Failed to load movie: ${error.message}`);
+            showError(error.message || 'Failed to load movie');
         } finally {
             hidePreloader();
         }
@@ -140,13 +143,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update breadcrumb
         const breadcrumbNav = document.querySelector('.breadcrumb-nav');
-        breadcrumbNav.innerHTML = `
-            <a href="index.html">Home</a>
-            <span class="separator">/</span>
-            <a href="movies.html">Movies</a>
-            <span class="separator">/</span>
-            <span class="current-page">${movie.title}</span>
-        `;
+        if (breadcrumbNav) {
+            breadcrumbNav.innerHTML = `
+                <a href="index.html">Home</a>
+                <span class="separator">/</span>
+                <a href="movies.html">Movies</a>
+                <span class="separator">/</span>
+                <span class="current-page">${movie.title}</span>
+            `;
+        }
 
         // Set banner background using the correct field name
         const banner = document.getElementById('watch-area-banner');
@@ -178,66 +183,68 @@ document.addEventListener('DOMContentLoaded', () => {
         const youtubeLink = movie.youtube_link || '#';
         const country = movie.country || 'N/A';
 
-        detailsPanel.innerHTML = `
-            <div class="poster-container">
-                <img src="${posterUrl}" alt="${movie.title} Poster" 
-                     onerror="this.onerror=null; this.src='${FALLBACK_POSTER}'">
-            </div>
-            <div class="info-container">
-                <h1>${movie.title}</h1>
-                <p class="plot-summary">${description}</p>
-                
-                <div class="metadata-grid">
-                    ${actors !== 'N/A' && actors !== 'null' ? `
+        if (detailsPanel) {
+            detailsPanel.innerHTML = `
+                <div class="poster-container">
+                    <img src="${posterUrl}" alt="${movie.title} Poster" 
+                         onerror="this.onerror=null; this.src='${FALLBACK_POSTER}'">
+                </div>
+                <div class="info-container">
+                    <h1>${movie.title}</h1>
+                    <p class="plot-summary">${description}</p>
+                    
+                    <div class="metadata-grid">
+                        ${actors !== 'N/A' && actors !== 'null' ? `
+                            <div>
+                                <span>Starring</span>
+                                <span>${actors}</span>
+                            </div>
+                        ` : ''}
                         <div>
-                            <span>Starring</span>
-                            <span>${actors}</span>
+                            <span>Director</span>
+                            <span>${director}</span>
                         </div>
-                    ` : ''}
-                    <div>
-                        <span>Director</span>
-                        <span>${director}</span>
+                        <div>
+                            <span>Genre</span>
+                            <span>${genres.join(', ')}</span>
+                        </div>
+                        <div>
+                            <span>Release</span>
+                            <span>${releaseYear}</span>
+                        </div>
+                        <div>
+                            <span>Duration</span>
+                            <span>${runtime}</span>
+                        </div>
+                        <div>
+                            <span>Country</span>
+                            <span>${country}</span>
+                        </div>
+                        <div>
+                            <span>Rating</span>
+                            <span>
+                                <i class="fas fa-star" style="color: #FFC107;"></i> 
+                                ${parseFloat(rating).toFixed(1)}/10
+                            </span>
+                        </div>
                     </div>
-                    <div>
-                        <span>Genre</span>
-                        <span>${genres.join(', ')}</span>
-                    </div>
-                    <div>
-                        <span>Release</span>
-                        <span>${releaseYear}</span>
-                    </div>
-                    <div>
-                        <span>Duration</span>
-                        <span>${runtime}</span>
-                    </div>
-                    <div>
-                        <span>Country</span>
-                        <span>${country}</span>
-                    </div>
-                    <div>
-                        <span>Rating</span>
-                        <span>
-                            <i class="fas fa-star" style="color: #FFC107;"></i> 
-                            ${parseFloat(rating).toFixed(1)}/10
-                        </span>
+                    
+                    <div class="actions-bar">
+                        <button id="watch-now-btn" class="action-btn btn-primary">
+                            <i class="fas fa-play"></i> Watch Now
+                        </button>
+                        ${youtubeLink && youtubeLink !== '#' ? `
+                            <a href="${youtubeLink}" target="_blank" class="action-btn btn-secondary" id="youtube-btn">
+                                <i class="fab fa-youtube"></i> Play on YouTube
+                            </a>
+                        ` : ''}
+                        <button id="share-btn" class="action-btn btn-secondary">
+                            <i class="fas fa-share"></i> Share
+                        </button>
                     </div>
                 </div>
-                
-                <div class="actions-bar">
-                    <button id="watch-now-btn" class="action-btn btn-primary">
-                        <i class="fas fa-play"></i> Watch Now
-                    </button>
-                    ${youtubeLink && youtubeLink !== '#' ? `
-                        <a href="${youtubeLink}" target="_blank" class="action-btn btn-secondary" id="youtube-btn">
-                            <i class="fab fa-youtube"></i> Play on YouTube
-                        </a>
-                    ` : ''}
-                    <button id="share-btn" class="action-btn btn-secondary">
-                        <i class="fas fa-share"></i> Share
-                    </button>
-                </div>
-            </div>
-        `;
+            `;
+        }
         
         console.log('✅ UI populated successfully');
     }
@@ -301,7 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 .neq('id', currentMovie.id)
                 .limit(20);
 
-            if (error) throw error;
+            if (error) {
+                console.error('Error fetching recommendations:', error);
+                return;
+            }
 
             let recommendations = [];
 
@@ -363,29 +373,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Update watch history
+     * Update watch history - FIXED VERSION
      */
     async function updateWatchHistory(movieId) {
-        if (!window.authService) return;
+        // Skip if no auth service or user not logged in
+        if (!window.authService || !window.authService.isLoggedIn()) {
+            return;
+        }
+        
         const user = window.authService.getCurrentUser();
         if (!user) return;
 
         try {
-            // Insert or update watch history
-            const { error } = await supabaseClient
+            // Try to insert watch history
+            const { data, error } = await supabaseClient
                 .from('watch_history')
-                .insert({
-                    user_id: user.id,
-                    movie_id: movieId,
-                    watched_at: new Date().toISOString()
-                }, { ignoreDuplicates: true });
+                .upsert(
+                    {
+                        user_id: user.id,
+                        movie_id: movieId,
+                        watched_at: new Date().toISOString(),
+                        progress: 0
+                    },
+                    {
+                        onConflict: 'user_id,movie_id',
+                        ignoreDuplicates: true
+                    }
+                );
 
-            if (!error) {
-                console.log('✅ Watch history updated.');
+            if (error) {
+                // If it's a unique constraint error, that's fine - movie was already in history
+                if (error.code === '23505' || error.message?.includes('duplicate')) {
+                    // Update the watched_at timestamp
+                    await supabaseClient
+                        .from('watch_history')
+                        .update({ watched_at: new Date().toISOString() })
+                        .eq('user_id', user.id)
+                        .eq('movie_id', movieId);
+                } else {
+                    console.log('Watch history not available:', error.message);
+                }
+            } else {
+                console.log('✅ Watch history updated');
             }
-            
         } catch (error) {
-            console.log('Watch history update skipped');
+            // Silently handle errors - watch history is not critical
+            console.log('Watch history feature not configured');
         }
     }
 
@@ -394,13 +427,15 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function showError(message) {
         const container = document.getElementById('video-banner-container');
-        container.innerHTML = `
-            <div style="text-align: center; padding: 50px; color: var(--text-primary);">
-                <h2>Error</h2>
-                <p>${message}</p>
-                <a href="index.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">Go Home</a>
-            </div>
-        `;
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: var(--text-primary);">
+                    <h2>Error</h2>
+                    <p>${message}</p>
+                    <a href="index.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">Go Home</a>
+                </div>
+            `;
+        }
     }
 
     function hidePreloader() {

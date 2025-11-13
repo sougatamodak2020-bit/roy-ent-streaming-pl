@@ -1012,156 +1012,7 @@ input:checked+.slider:before {
 }
 
 /* ========================================
-   19. FEATURED CAST & DIRECTORS
-======================================== */
-#featured-cast-container {
-    padding: 0;
-}
-
-.featured-cast-section {
-    padding: 60px 5%;
-    background: var(--bg-secondary);
-    position: relative;
-}
-
-.featured-cast-section:first-child::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary));
-    pointer-events: none;
-}
-
-.featured-cast-section .section-title {
-    font-size: 2.2rem;
-    margin: 0 auto 40px auto;
-    padding-bottom: 10px;
-    border-bottom: 3px solid var(--accent-primary);
-    display: inline-block;
-    color: var(--text-accent);
-    width: 100%;
-    text-align: left;
-}
-
-.cast-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 40px;
-    text-align: center;
-    margin-top: 40px;
-}
-
-.cast-profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    transition: transform 0.3s ease;
-    cursor: pointer;
-}
-
-.cast-profile:hover {
-    transform: translateY(-10px);
-}
-
-.cast-profile img {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid var(--border-color);
-    transition: all 0.3s ease;
-    box-shadow: 0 5px 20px var(--shadow);
-}
-
-.cast-profile:hover img {
-    border-color: var(--accent-secondary);
-    box-shadow: 0 8px 30px rgba(255, 111, 0, 0.5);
-    transform: scale(1.08);
-}
-
-.cast-profile h3 {
-    font-size: 1.2rem;
-    color: var(--text-primary);
-    margin: 0;
-    font-weight: 600;
-    transition: color 0.3s ease;
-}
-
-.cast-profile:hover h3 {
-    color: var(--accent-secondary);
-}
-
-.cast-profile span {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-transform: capitalize;
-}
-
-/* Different styling for Directors section */
-.featured-cast-section:last-child {
-    background: var(--bg-primary);
-    padding-top: 80px;
-}
-
-.featured-cast-section:last-child .section-title {
-    border-bottom-color: var(--accent-primary);
-}
-
-.featured-cast-section:last-child .cast-grid {
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-
-.featured-cast-section:last-child .cast-profile {
-    padding: 30px 20px;
-    background: var(--bg-card);
-    border-radius: 15px;
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
-}
-
-.featured-cast-section:last-child .cast-profile:hover {
-    box-shadow: 0 10px 40px var(--shadow);
-    border-color: var(--accent-primary);
-}
-
-.featured-cast-section:last-child .cast-profile img {
-    width: 180px;
-    height: 180px;
-    border-width: 5px;
-}
-
-.featured-cast-section:last-child .cast-profile:hover img {
-    border-color: var(--accent-primary);
-    box-shadow: 0 8px 30px rgba(210, 4, 45, 0.5);
-}
-
-.featured-cast-section:last-child .cast-profile h3 {
-    font-size: 1.4rem;
-    font-weight: 700;
-}
-
-.featured-cast-section:last-child .cast-profile:hover h3 {
-    color: var(--accent-primary);
-}
-
-.featured-cast-section:last-child .cast-profile span {
-    color: var(--accent-secondary);
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* ========================================
-   20. MODALS
+   19. MODALS
 ======================================== */
 .modal {
     display: none;
@@ -1379,7 +1230,7 @@ input:checked+.slider:before {
 }
 
 /* ========================================
-   21. FOOTER
+   20. FOOTER
 ======================================== */
 .main-footer {
     background-color: var(--bg-secondary);
@@ -1481,121 +1332,7 @@ input:checked+.slider:before {
 }
 
 /* ========================================
-   22. MOVIES PAGE SPECIFIC
-======================================== */
-.page-header {
-    padding: 120px 5% 40px 5%;
-    background: linear-gradient(rgba(10, 10, 10, 0.8), rgba(10, 10, 10, 0.8)), url('img/assets/bannerposter4.jpg') no-repeat center center/cover;
-}
-
-.page-title {
-    font-size: 3rem;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    border-bottom: 3px solid var(--accent-primary);
-    display: inline-block;
-    padding-bottom: 10px;
-}
-
-.movie-grid-container {
-    padding: 50px 5%;
-}
-
-
-/* ========================================
-UI FIX: Add this to the BOTTOM of style.css
-========================================
-*/
-
-/* This makes .movie-grid (from movies.html) 
-  behave exactly like .film-grid (from index.html) 
-*/
-.movie-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 30px;
-    padding: 0 5%;
-    margin-top: 30px;
-}
-
-/* This makes .film-card (your movie card) 
-  style correctly when it's inside .movie-grid.
-  This fixes the genres, text, and spacing.
-*/
-.movie-grid .film-card {
-    width: 100%;
-    flex: 1 1 auto;
-    background: var(--bg-card);
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease-out;
-    cursor: pointer;
-}
-
-.movie-grid .film-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 30px rgba(210, 4, 45, 0.4);
-}
-
-.movie-grid .film-card .card-banner {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-}
-
-.movie-grid .film-card .card-banner img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.movie-grid .film-card:hover .card-banner img {
-    transform: scale(1.05);
-}
-
-.movie-grid .film-card .card-content {
-    padding: 20px;
-}
-
-.movie-grid .film-card .card-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-accent);
-    margin-bottom: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.movie-grid .film-card .card-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-.movie-grid .film-card .card-info .genre {
-    background: var(--accent-secondary);
-    color: var(--bg-primary);
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-weight: 700;
-}
-
-.movie-grid .film-card .card-info .rating {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: var(--accent-secondary);
-}
-
-
-/* ========================================
-   23. LIGHT MODE SPECIFIC ENHANCEMENTS
+   21. LIGHT MODE SPECIFIC ENHANCEMENTS
 ======================================== */
 [data-theme="light"] .main-header {
     box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
@@ -1617,10 +1354,6 @@ UI FIX: Add this to the BOTTOM of style.css
     box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
 }
 
-[data-theme="light"] .cast-profile img {
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-}
-
 [data-theme="light"] .rating-display {
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(15, 23, 42, 0.12);
@@ -1628,7 +1361,7 @@ UI FIX: Add this to the BOTTOM of style.css
 }
 
 /* ========================================
-   24. ANIMATIONS
+   22. ANIMATIONS
 ======================================== */
 @keyframes fadeInUp {
     from {
@@ -1640,55 +1373,6 @@ UI FIX: Add this to the BOTTOM of style.css
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.cast-profile {
-    animation: fadeInUp 0.6s ease forwards;
-    opacity: 0;
-}
-
-.cast-profile:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.cast-profile:nth-child(2) {
-    animation-delay: 0.15s;
-}
-
-.cast-profile:nth-child(3) {
-    animation-delay: 0.2s;
-}
-
-.cast-profile:nth-child(4) {
-    animation-delay: 0.25s;
-}
-
-.cast-profile:nth-child(5) {
-    animation-delay: 0.3s;
-}
-
-.cast-profile:nth-child(6) {
-    animation-delay: 0.35s;
-}
-
-.cast-profile:nth-child(7) {
-    animation-delay: 0.4s;
-}
-
-.cast-profile:nth-child(8) {
-    animation-delay: 0.45s;
-}
-
-.cast-profile:nth-child(9) {
-    animation-delay: 0.5s;
-}
-
-.cast-profile:nth-child(10) {
-    animation-delay: 0.55s;
-}
-
-.cast-profile:nth-child(11) {
-    animation-delay: 0.6s;
 }
 
 .film-card {
@@ -1720,7 +1404,7 @@ UI FIX: Add this to the BOTTOM of style.css
 }
 
 /* ========================================
-   25. ACCESSIBILITY
+   23. ACCESSIBILITY
 ======================================== */
 * {
     -webkit-font-smoothing: antialiased;
@@ -1744,8 +1428,9 @@ input:focus {
     color: #fff;
 }
 
-
-/* --- Custom Confirmation Modal --- */
+/* ========================================
+   24. CUSTOM CONFIRMATION MODAL
+======================================== */
 .custom-modal-overlay {
     position: fixed;
     top: 0;
@@ -1754,7 +1439,7 @@ input:focus {
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
-    display: none; /* Hidden by default */
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 10002;
@@ -1768,11 +1453,11 @@ input:focus {
 }
 
 .custom-modal-content {
-    background: var(--bg-card, #1a1a1a);
-    color: var(--text-primary, #F5F5F5);
+    background: var(--bg-card);
+    color: var(--text-primary);
     padding: 30px;
     border-radius: 12px;
-    border: 1px solid var(--border-color, rgba(227, 227, 227, 0.1));
+    border: 1px solid var(--border-color);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     text-align: center;
     max-width: 400px;
@@ -1809,106 +1494,20 @@ input:focus {
     transform: translateY(-2px);
 }
 
-/* Uses your existing button styles if available */
 .custom-modal-buttons .btn-primary {
-    background: var(--accent-primary, #D2042D);
+    background: var(--accent-primary);
     color: white;
 }
 
 .custom-modal-buttons .btn-secondary {
-    background: var(--bg-secondary, #141414);
-    color: var(--text-secondary, #AAAAAA);
-    border: 1px solid var(--border-color, rgba(227, 227, 227, 0.1));
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
 }
-
 
 /* ========================================
-   ROY ENTERTAINMENT - COMPLETE STYLES
-   Professional Light/Dark Mode
+   25. LOADING OVERLAY
 ======================================== */
-
-/* ... (all your existing styles.css code) ... */
-
-@media(max-width: 480px) {
-
-    /* ... (all your existing responsive styles) ... */
-
-    .cast-profile img {
-        /* (This is the end of your provided file) */
-    }
-}
-
-/* =======================================
-   NEW CODE FOR MODALS AND LOADING
-======================================== */
-
-/* --- Custom Confirmation Modal --- */
-.custom-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    display: none; /* Hidden by default */
-    align-items: center;
-    justify-content: center;
-    z-index: 10002;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.custom-modal-overlay.show {
-    display: flex;
-    opacity: 1;
-}
-.custom-modal-content {
-    background: var(--bg-card, #1a1a1a);
-    color: var(--text-primary, #F5F5F5);
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color, rgba(227, 227, 227, 0.1));
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
-}
-.custom-modal-overlay.show .custom-modal-content {
-    transform: scale(1);
-}
-.custom-modal-content p {
-    font-size: 1.1rem;
-    margin: 0 0 25px;
-}
-.custom-modal-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-}
-.custom-modal-buttons button {
-    padding: 10px 25px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: transform 0.2s ease;
-}
-.custom-modal-buttons button:hover {
-    transform: translateY(-2px);
-}
-.custom-modal-buttons .btn-primary {
-    background: var(--accent-primary, #D2042D);
-    color: white;
-}
-.custom-modal-buttons .btn-secondary {
-    background: var(--bg-secondary, #141414);
-    color: var(--text-secondary, #AAAAAA);
-    border: 1px solid var(--border-color, rgba(227, 227, 227, 0.1));
-}
-
-/* --- Full Screen Loading Overlay --- */
 #loading-overlay {
     position: fixed;
     top: 0;
@@ -1917,7 +1516,7 @@ input:focus {
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(8px);
-    display: none; /* Hidden by default */
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -1926,10 +1525,12 @@ input:focus {
     transition: opacity 0.3s ease;
     color: var(--text-primary);
 }
+
 #loading-overlay.show {
     display: flex;
     opacity: 1;
 }
+
 .loading-spinner {
     width: 50px;
     height: 50px;
@@ -1938,315 +1539,17 @@ input:focus {
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
+
 #loading-overlay p {
     margin-top: 20px;
     font-size: 1.1rem;
     font-weight: 500;
 }
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-
 
 /* ========================================
-   26. RESPONSIVE DESIGN
-======================================== */
-@media(max-width: 1024px) {
-    .dropdown-menu.multi-column {
-        min-width: 400px;
-    }
-
-    .movie-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    }
-
-    .cast-grid {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 35px;
-    }
-
-    .featured-cast-section:last-child .cast-grid {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    }
-}
-
-@media(max-width: 768px) {
-
-    /* Hide main navigation on mobile */
-    .main-nav {
-        display: none;
-    }
-
-    /* Adjust header */
-    .main-header {
-        padding: 12px 4%;
-    }
-
-    .main-header .logo span {
-        font-size: 1.2rem;
-    }
-
-    .main-header .logo img {
-        height: 40px;
-    }
-
-    /* Search bar adjustments */
-    #search-bar {
-        width: 120px;
-        font-size: 14px;
-    }
-
-    #search-bar:focus {
-        width: 180px;
-    }
-
-    /* Theme toggle mobile */
-    .theme-switch {
-        width: 50px;
-        height: 26px;
-    }
-
-    .slider.round:before {
-        height: 18px;
-        width: 18px;
-    }
-
-    input:checked+.slider:before {
-        transform: translateX(24px);
-    }
-
-    /* Profile mobile */
-    .profile-name {
-        display: none;
-    }
-
-    .profile-menu {
-        right: -20px;
-        width: 280px;
-    }
-
-    /* Login button mobile */
-    .login-btn span {
-        display: none;
-    }
-
-    .login-btn {
-        padding: 10px;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        justify-content: center;
-    }
-
-    /* Slide content */
-    .slide {
-        padding: 50px 4%;
-    }
-
-    .slide-content h2 {
-        font-size: 2.5rem;
-    }
-
-    .slide-metadata {
-        font-size: 0.95rem;
-        gap: 10px;
-    }
-
-    /* Slider dots */
-    .slider-dots {
-        padding: 20px 0;
-    }
-
-    /* Film cards */
-    .film-card {
-        flex: 0 0 280px;
-        width: 280px;
-    }
-
-    .card-content {
-        padding: 12px;
-    }
-
-    .card-content h3 {
-        font-size: 1rem;
-    }
-
-    .film-card-meta {
-        gap: 8px;
-        font-size: 0.75rem;
-    }
-
-    .card-content p {
-        font-size: 0.8rem;
-    }
-
-    /* Section title */
-    .section-title {
-        font-size: 1.8rem;
-    }
-
-    /* Featured Cast */
-    .featured-cast-section {
-        padding: 50px 4%;
-    }
-
-    .featured-cast-section .section-title {
-        font-size: 1.8rem;
-    }
-
-    .cast-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 30px;
-    }
-
-    .cast-profile img {
-        width: 120px;
-        height: 120px;
-        border-width: 3px;
-    }
-
-    .cast-profile h3 {
-        font-size: 1rem;
-    }
-
-    .cast-profile span {
-        font-size: 0.8rem;
-    }
-
-    .featured-cast-section:last-child .cast-grid {
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    }
-
-    .featured-cast-section:last-child .cast-profile {
-        padding: 20px 15px;
-    }
-
-    .featured-cast-section:last-child .cast-profile img {
-        width: 140px;
-        height: 140px;
-    }
-
-    .featured-cast-section:last-child .cast-profile h3 {
-        font-size: 1.1rem;
-    }
-
-    .featured-cast-section:last-child .cast-profile span {
-        font-size: 0.85rem;
-    }
-
-    /* Page title */
-    .page-title {
-        font-size: 2rem;
-    }
-
-    .page-header {
-        padding: 100px 4% 30px 4%;
-    }
-
-    /* Footer */
-    .footer-links {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .footer-logo img {
-        height: 60px;
-    }
-
-    .footer-logo span {
-        font-size: 1.2rem;
-    }
-
-    .follow .icon {
-        gap: 20px;
-    }
-
-    .follow .icon a {
-        font-size: 1.3rem;
-    }
-
-    /* Movie grid mobile */
-    .movie-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
-    }
-
-    /* Modals */
-    .modal-content {
-        padding: 20px;
-    }
-
-    .avatar-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media(max-width: 480px) {
-
-    /* Extra small devices */
-    .slide-content h2 {
-        font-size: 1.8rem;
-    }
-
-    .slide-metadata {
-        font-size: 0.85rem;
-        gap: 8px;
-    }
-
-    .btn-primary {
-        padding: 10px 20px;
-        font-size: 14px;
-    }
-
-    .film-card {
-        flex: 0 0 250px;
-        width: 250px;
-    }
-
-    .dot {
-        width: 8px;
-        height: 8px;
-    }
-
-    .movie-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .cast-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-
-    .cast-profile img {
-        width: 100px;
-        height: 100px;
-    }
-
-    .cast-profile h3 {
-        font-size: 0.9rem;
-    }
-
-    .cast-profile span {
-        font-size: 0.75rem;
-    }
-
-    .featured-cast-section:last-child .cast-grid {
-        grid-template-columns: 1fr;
-        gap: 25px;
-    }
-
-    .featured-cast-section:last-child .cast-profile img {
-        width: 120px;
-        height: 120px;
-    }
-}
-
-/* ========================================
-   27. PRINT STYLES
+   26. PRINT STYLES
 ======================================== */
 @media print {
-
     .main-header,
     .hero-slider,
     .slider-dots,

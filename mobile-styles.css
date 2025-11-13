@@ -1,0 +1,940 @@
+/* ========================================
+   MOBILE OPTIMIZATION - Roy Entertainment
+   Beautiful & Clean Mobile Experience
+======================================== */
+
+/* ========================================
+   MOBILE NAVIGATION SYSTEM
+======================================== */
+
+/* Hamburger Menu Button */
+.mobile-menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-menu-overlay.active {
+    opacity: 1;
+}
+
+/* Mobile Menu Panel */
+.mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 85%;
+    max-width: 320px;
+    height: 100vh;
+    background: var(--bg-secondary);
+    z-index: 1000;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-menu.active {
+    right: 0;
+}
+
+.mobile-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-card);
+}
+
+.mobile-menu-close {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.mobile-menu-content {
+    padding: 20px 0;
+}
+
+.mobile-menu-item {
+    display: block;
+    padding: 15px 20px;
+    color: var(--text-primary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s ease;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.mobile-menu-item:active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.mobile-menu-dropdown {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.mobile-menu-dropdown-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.mobile-menu-dropdown-toggle i {
+    transition: transform 0.3s ease;
+}
+
+.mobile-menu-dropdown.active .mobile-menu-dropdown-toggle i {
+    transform: rotate(180deg);
+}
+
+.mobile-menu-dropdown-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: var(--bg-primary);
+}
+
+.mobile-menu-dropdown.active .mobile-menu-dropdown-content {
+    max-height: 500px;
+}
+
+.mobile-menu-dropdown-content a {
+    display: block;
+    padding: 12px 40px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-dropdown-content a:active {
+    background: var(--accent-secondary);
+    color: white;
+}
+
+/* ========================================
+   TABLET VIEW (768px)
+======================================== */
+
+@media (max-width: 768px) {
+    /* Hide desktop navigation */
+    .main-nav {
+        display: none !important;
+    }
+
+    /* Show mobile menu toggle */
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    .mobile-menu,
+    .mobile-menu-overlay {
+        display: block;
+    }
+
+    /* Header adjustments */
+    .main-header {
+        padding: 10px 15px;
+        gap: 10px;
+    }
+
+    .main-header .logo {
+        flex: 1;
+    }
+
+    .main-header .logo img {
+        height: 40px;
+    }
+
+    .main-header .logo span {
+        font-size: 1.1rem;
+        display: none; /* Hide on very small screens */
+    }
+
+    /* Simplified nav-right */
+    .nav-right {
+        gap: 8px;
+    }
+
+    /* Search optimization */
+    .search-container {
+        position: fixed;
+        top: -100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-primary);
+        padding: 15px;
+        z-index: 998;
+        transition: top 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .search-container.active {
+        top: 60px;
+    }
+
+    #search-bar {
+        width: 100%;
+        padding: 12px 40px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .mobile-search-toggle {
+        display: block;
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        padding: 10px;
+        cursor: pointer;
+    }
+
+    /* Hide desktop search by default */
+    .nav-right .search-container {
+        display: none;
+    }
+
+    /* Theme switch smaller */
+    .theme-switch {
+        width: 45px;
+        height: 24px;
+    }
+
+    .slider.round:before {
+        width: 18px;
+        height: 18px;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(21px);
+    }
+
+    /* Profile adjustments */
+    .profile-btn {
+        padding: 6px 10px;
+    }
+
+    .profile-name {
+        display: none;
+    }
+
+    .profile-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .profile-menu {
+        width: 280px;
+        right: -10px;
+        max-height: 70vh;
+    }
+
+    /* Login button mobile */
+    .login-btn span {
+        display: none;
+    }
+
+    .login-btn {
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 1.2rem;
+    }
+
+    /* ========================================
+       HERO SECTION MOBILE
+    ======================================== */
+    
+    .hero-slider {
+        height: 60vh;
+        min-height: 400px;
+    }
+
+    .slide {
+        padding: 40px 20px;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .slide::before {
+        background: linear-gradient(to top, var(--gradient-start), transparent 70%);
+    }
+
+    .slide-content {
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .slide-content h2 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .slide-metadata {
+        font-size: 0.9rem;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+
+    /* Slider dots */
+    .slider-dots {
+        padding: 15px 0;
+        gap: 8px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    /* ========================================
+       FILM CARDS MOBILE
+    ======================================== */
+
+    .film-grid-container {
+        padding: 30px 0;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        margin: 0 15px 20px 15px;
+    }
+
+    .film-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 0 15px;
+        overflow-x: visible;
+    }
+
+    .film-card {
+        width: 100%;
+        flex: none;
+    }
+
+    .film-card img {
+        aspect-ratio: 16/9;
+    }
+
+    .card-content {
+        padding: 10px;
+    }
+
+    .card-content h3 {
+        font-size: 0.95rem;
+        margin-bottom: 5px;
+    }
+
+    .film-card-meta {
+        font-size: 0.7rem;
+        gap: 8px;
+    }
+
+    .card-content p {
+        font-size: 0.8rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .rating-display {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        top: 8px;
+        right: 8px;
+    }
+
+    /* ========================================
+       CONTINUE WATCHING MOBILE
+    ======================================== */
+
+    #continue-watching-grid {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 15px;
+        padding: 0 15px;
+    }
+
+    #continue-watching-grid .film-card {
+        flex: 0 0 200px;
+        scroll-snap-align: start;
+    }
+
+    /* ========================================
+       MOVIES PAGE MOBILE
+    ======================================== */
+
+    /* Hero section */
+    .movies-hero {
+        height: 250px;
+    }
+
+    .title-main {
+        font-size: 2rem;
+    }
+
+    .title-sub {
+        font-size: 1rem;
+    }
+
+    .hero-stats {
+        gap: 25px;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+    }
+
+    /* Filter section */
+    .filter-section {
+        position: static;
+        padding: 15px 0;
+    }
+
+    .filter-container {
+        padding: 0 15px;
+    }
+
+    .filter-search {
+        margin-bottom: 15px;
+    }
+
+    .filter-search input {
+        padding: 12px 45px;
+        font-size: 16px;
+    }
+
+    .filter-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .filter-group {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .filter-group:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .view-modes {
+        grid-column: 1 / -1;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .filter-group label {
+        font-size: 0.75rem;
+    }
+
+    .filter-group select {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    /* Active filters */
+    .active-filters {
+        margin-top: 10px;
+    }
+
+    .filter-tag {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+
+    /* Results info */
+    .results-info {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    /* Movie grid */
+    .movies-container {
+        padding: 0 15px;
+    }
+
+    .movie-grid,
+    #movie-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    /* ========================================
+       WATCH PAGE MOBILE
+    ======================================== */
+
+    .breadcrumb-nav {
+        padding: 15px;
+        font-size: 0.85rem;
+        flex-wrap: wrap;
+    }
+
+    .video-banner-container {
+        width: 100%;
+        height: 50vh;
+        min-height: 250px;
+        border-radius: 0;
+        margin-bottom: 20px;
+    }
+
+    .play-icon-overlay {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+    }
+
+    .movie-details-panel {
+        width: 100%;
+        margin: 0;
+        padding: 20px 15px;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        border-radius: 0;
+    }
+
+    .poster-container {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+
+    .info-container h1 {
+        font-size: 1.8rem;
+        text-align: center;
+    }
+
+    .plot-summary {
+        font-size: 0.95rem;
+        text-align: center;
+    }
+
+    .metadata-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .actions-bar {
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .action-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+
+    /* Recommendations */
+    #recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 0 15px;
+    }
+
+    /* ========================================
+       FOOTER MOBILE
+    ======================================== */
+
+    .main-footer {
+        padding: 30px 15px;
+        gap: 15px;
+    }
+
+    .footer-logo img {
+        height: 60px;
+    }
+
+    .footer-logo span {
+        font-size: 1.2rem;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .follow .icon {
+        gap: 20px;
+    }
+
+    /* ========================================
+       MODALS MOBILE
+    ======================================== */
+
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .avatar-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+
+    .download-buttons {
+        gap: 10px;
+    }
+}
+
+/* ========================================
+   MOBILE VIEW (480px)
+======================================== */
+
+@media (max-width: 480px) {
+    /* Show logo text only on larger mobiles */
+    @media (min-width: 360px) {
+        .main-header .logo span {
+            display: inline;
+            font-size: 1rem;
+        }
+    }
+
+    /* Ultra compact header */
+    .main-header {
+        padding: 8px 10px;
+    }
+
+    .main-header .logo img {
+        height: 35px;
+    }
+
+    /* Even smaller nav items */
+    .nav-right {
+        gap: 5px;
+    }
+
+    .mobile-menu-toggle,
+    .mobile-search-toggle {
+        padding: 8px;
+        font-size: 1.1rem;
+    }
+
+    .theme-switch {
+        width: 40px;
+        height: 22px;
+    }
+
+    .slider.round:before {
+        width: 16px;
+        height: 16px;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(18px);
+    }
+
+    /* ========================================
+       HERO MOBILE OPTIMIZED
+    ======================================== */
+
+    .hero-slider {
+        height: 50vh;
+        min-height: 300px;
+    }
+
+    .slide {
+        padding: 30px 15px;
+    }
+
+    .slide-content h2 {
+        font-size: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .slide-metadata {
+        font-size: 0.8rem;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+
+    /* ========================================
+       SINGLE COLUMN FILM GRID
+    ======================================== */
+
+    .film-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .film-card {
+        max-width: 100%;
+    }
+
+    .film-card img {
+        aspect-ratio: 16/10;
+    }
+
+    .card-content h3 {
+        font-size: 1.1rem;
+    }
+
+    .film-card-meta {
+        font-size: 0.8rem;
+    }
+
+    .card-content p {
+        font-size: 0.85rem;
+        -webkit-line-clamp: 3;
+    }
+
+    /* Continue watching stays horizontal scroll */
+    #continue-watching-grid .film-card {
+        flex: 0 0 160px;
+    }
+
+    /* ========================================
+       MOVIES PAGE MOBILE
+    ======================================== */
+
+    .movies-hero {
+        height: 200px;
+    }
+
+    .title-main {
+        font-size: 1.5rem;
+    }
+
+    .title-sub {
+        font-size: 0.9rem;
+    }
+
+    .hero-stats {
+        gap: 20px;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    /* Single column filters */
+    .filter-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .movie-grid,
+    #movie-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    /* ========================================
+       WATCH PAGE MOBILE
+    ======================================== */
+
+    .video-banner-container {
+        height: 40vh;
+        min-height: 200px;
+    }
+
+    .play-icon-overlay {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .info-container h1 {
+        font-size: 1.5rem;
+    }
+
+    .plot-summary {
+        font-size: 0.9rem;
+    }
+
+    .metadata-grid span:last-child {
+        font-size: 0.9rem;
+    }
+
+    .actions-bar {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn {
+        width: 100%;
+        padding: 12px;
+    }
+
+    #recommendations-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    /* ========================================
+       FOOTER MOBILE
+    ======================================== */
+
+    .footer-links a {
+        padding: 8px 0;
+        font-size: 0.85rem;
+    }
+
+    /* ========================================
+       MODALS MOBILE
+    ======================================== */
+
+    .avatar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .download-buttons {
+        flex-direction: column;
+    }
+
+    .download-btn {
+        width: 100%;
+    }
+}
+
+/* ========================================
+   TOUCH OPTIMIZATIONS
+======================================== */
+
+@media (hover: none) {
+    /* Remove hover effects on touch devices */
+    .film-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .film-card:active {
+        transform: scale(0.98);
+    }
+
+    /* Larger touch targets */
+    button, 
+    a, 
+    .film-card,
+    select,
+    input {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Disable hover menus on touch */
+    .dropdown:hover .dropdown-menu {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .profile-dropdown:hover .profile-menu {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+/* ========================================
+   PERFORMANCE OPTIMIZATIONS
+======================================== */
+
+@media (max-width: 768px) {
+    /* Reduce animations on mobile */
+    * {
+        animation-duration: 0.2s !important;
+    }
+
+    /* Simplify shadows */
+    .film-card {
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Disable blur effects on low-end devices */
+    @media (max-width: 480px) {
+        .modal,
+        .mobile-menu-overlay {
+            backdrop-filter: none;
+        }
+    }
+}
+
+/* ========================================
+   LANDSCAPE MOBILE ADJUSTMENTS
+======================================== */
+
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero-slider {
+        height: 80vh;
+    }
+
+    .movies-hero {
+        height: 60vh;
+    }
+
+    .film-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .movie-grid,
+    #movie-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    #recommendations-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) and (orientation: landscape) {
+    .film-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .movie-grid,
+    #movie-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
