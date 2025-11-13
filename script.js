@@ -1,4 +1,7 @@
-// ========================================\r\n// MAIN SCRIPT - FULLY ASYNC\r\n// Roy Entertainment\r\n// ========================================
+// ========================================
+// MAIN SCRIPT - FULLY ASYNC
+// Roy Entertainment
+// ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -23,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dotsContainer = document.getElementById('slider-dots');
         let currentSlideIndex = 0;
         let autoScrollInterval = null;
+        // REMOVED problematic line here - slideWidth declaration moved inside safety check
 
         // =========================================================
         // THIS IS THE FIX:
@@ -30,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // This stops the 'clientWidth' crash on other pages.
         // =========================================================
         if (slides.length > 0) {
-            let slideWidth = slides[0].clientWidth; // Now it's safe
+            let slideWidth = slides[0].clientWidth; // Now it's actually safe inside the check
 
             // Create dots
             slides.forEach((_, i) => {
